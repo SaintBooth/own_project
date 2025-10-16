@@ -1,0 +1,7 @@
+/* Light Theme - Default (already defined in tokens.css) */
+/* This file can be used for light theme specific overrides if needed */
+
+:root {
+  /* Light theme is the default, tokens.css has the values */
+  /* Additional light-specific customizations can go here */
+}

@@ -1,0 +1,165 @@
+[
+  {
+    "id": "ecommerce-platform",
+    "title": "E-Commerce Platform",
+    "slug": "ecommerce-platform",
+    "description": "Full-stack e-commerce solution with React and Node.js featuring product catalog, shopping cart, and secure checkout",
+    "longDescription": "Built a complete e-commerce platform featuring product catalog, shopping cart, checkout flow, and admin panel. Integrated Stripe for payments and implemented real-time inventory management. The platform handles thousands of products with advanced filtering and search capabilities.",
+    "thumbnail": "https://placehold.co/800x600/3b82f6/ffffff?text=E-Commerce+Platform",
+    "images": [
+      "https://placehold.co/800x600/3b82f6/ffffff?text=Dashboard",
+      "https://placehold.co/800x600/8b5cf6/ffffff?text=Product+Catalog"
+    ],
+    "technologies": ["React", "Node.js", "Express", "PostgreSQL", "Stripe", "Redis"],
+    "category": "web",
+    "featured": true,
+    "completedDate": "2025-08-15",
+    "demoUrl": "https://demo.example.com",
+    "githubUrl": "https://github.com/user/ecommerce",
+    "challenges": "Handling concurrent inventory updates, ensuring payment security, optimizing database queries for large catalogs",
+    "results": "Processed 1000+ orders in first month, 99.9% uptime, <2s page load times",
+    "reactionCounts": {
+      "like": 12,
+      "love": 8,
+      "celebrate": 3
+    },
+    "status": "published",
+    "order": 1
+  },
+  {
+    "id": "portfolio-builder",
+    "title": "Portfolio Builder SaaS",
+    "slug": "portfolio-builder",
+    "description": "No-code portfolio builder enabling developers to create beautiful portfolio websites in minutes",
+    "longDescription": "Developed a SaaS application that allows developers to build and deploy portfolio websites without writing code. Features drag-and-drop interface, customizable templates, and one-click deployment to various hosting platforms.",
+    "thumbnail": "https://placehold.co/800x600/8b5cf6/ffffff?text=Portfolio+Builder",
+    "images": [
+      "https://placehold.co/800x600/8b5cf6/ffffff?text=Template+Gallery",
+      "https://placehold.co/800x600/ec4899/ffffff?text=Drag+and+Drop+Editor"
+    ],
+    "technologies": ["Vue.js", "Firebase", "Tailwind CSS", "Netlify"],
+    "category": "web",
+    "featured": true,
+    "completedDate": "2025-06-20",
+    "demoUrl": "https://portfolio-builder.example.com",
+    "githubUrl": null,
+    "challenges": "Building intuitive drag-and-drop UX, generating SEO-friendly static sites, managing user templates",
+    "results": "500+ users in beta, 95% satisfaction rate, featured on Product Hunt",
+    "reactionCounts": {
+      "like": 8,
+      "love": 15,
+      "celebrate": 5
+    },
+    "status": "published",
+    "order": 2
+  },
+  {
+    "id": "task-management-app",
+    "title": "Task Management App",
+    "slug": "task-management-app",
+    "description": "Collaborative task management application with real-time updates and team features",
+    "longDescription": "Created a collaborative task management tool with real-time synchronization, team workspaces, and advanced filtering. Supports drag-and-drop task organization, file attachments, and integration with popular tools like Slack and Google Calendar.",
+    "thumbnail": "https://placehold.co/800x600/10b981/ffffff?text=Task+Manager",
+    "images": [
+      "https://placehold.co/800x600/10b981/ffffff?text=Task+Board",
+      "https://placehold.co/800x600/f59e0b/ffffff?text=Team+Collaboration"
+    ],
+    "technologies": ["React", "Socket.io", "MongoDB", "Express"],
+    "category": "web",
+    "featured": false,
+    "completedDate": "2025-04-10",
+    "demoUrl": null,
+    "githubUrl": "https://github.com/user/task-app",
+    "challenges": "Implementing real-time sync across multiple clients, conflict resolution, scaling WebSocket connections",
+    "results": "Used by 50+ teams, 10k+ tasks created, 99.5% message delivery rate",
+    "reactionCounts": {
+      "like": 6,
+      "love": 4,
+      "celebrate": 2
+    },
+    "status": "published",
+    "order": 3
+  },
+  {
+    "id": "mobile-fitness-app",
+    "title": "Fitness Tracking Mobile App",
+    "slug": "mobile-fitness-app",
+    "description": "Cross-platform mobile fitness app with workout tracking, nutrition planning, and progress analytics",
+    "longDescription": "Developed a comprehensive fitness tracking application for iOS and Android using React Native. Features include workout logging, custom exercise creation, nutrition tracking with barcode scanner, progress photos, and detailed analytics with charts. Integrated with Apple Health and Google Fit for seamless data synchronization.",
+    "thumbnail": "https://placehold.co/800x600/ef4444/ffffff?text=Fitness+App",
+    "images": [
+      "https://placehold.co/800x600/ef4444/ffffff?text=Workout+Tracker",
+      "https://placehold.co/800x600/f97316/ffffff?text=Nutrition+Log",
+      "https://placehold.co/800x600/f59e0b/ffffff?text=Progress+Charts"
+    ],
+    "technologies": ["React Native", "TypeScript", "Firebase", "Redux", "Chart.js"],
+    "category": "mobile",
+    "featured": true,
+    "completedDate": "2025-07-05",
+    "demoUrl": null,
+    "githubUrl": "https://github.com/user/fitness-app",
+    "challenges": "Offline-first architecture, syncing data across devices, optimizing performance for complex charts",
+    "results": "10k+ downloads, 4.8/5 rating on App Store, featured in 'New Apps We Love'",
+    "reactionCounts": {
+      "like": 18,
+      "love": 12,
+      "celebrate": 7
+    },
+    "status": "published",
+    "order": 4
+  },
+  {
+    "id": "weather-dashboard",
+    "title": "Real-Time Weather Dashboard",
+    "slug": "weather-dashboard",
+    "description": "Interactive weather dashboard with real-time data, forecasts, and beautiful visualizations",
+    "longDescription": "Created a modern weather dashboard featuring real-time weather data, 7-day forecasts, interactive maps, and severe weather alerts. Integrated multiple weather APIs for accurate data and implemented custom data visualization using D3.js. Supports location search, geolocation, and saved favorite locations.",
+    "thumbnail": "https://placehold.co/800x600/06b6d4/ffffff?text=Weather+Dashboard",
+    "images": [
+      "https://placehold.co/800x600/06b6d4/ffffff?text=Current+Weather",
+      "https://placehold.co/800x600/0ea5e9/ffffff?text=Forecast+View"
+    ],
+    "technologies": ["React", "D3.js", "OpenWeather API", "Mapbox GL", "Tailwind CSS"],
+    "category": "web",
+    "featured": false,
+    "completedDate": "2025-03-15",
+    "demoUrl": "https://weather-demo.example.com",
+    "githubUrl": "https://github.com/user/weather-dashboard",
+    "challenges": "Managing API rate limits, creating responsive visualizations, handling various weather data formats",
+    "results": "5k+ daily users, sub-second load times, 99% API uptime",
+    "reactionCounts": {
+      "like": 9,
+      "love": 5,
+      "celebrate": 3
+    },
+    "status": "published",
+    "order": 5
+  },
+  {
+    "id": "blockchain-explorer",
+    "title": "Blockchain Transaction Explorer",
+    "slug": "blockchain-explorer",
+    "description": "Blockchain explorer for viewing transactions, blocks, and network statistics in real-time",
+    "longDescription": "Built a comprehensive blockchain explorer supporting multiple cryptocurrencies. Features include real-time transaction tracking, block explorer, wallet address lookup, network statistics, and transaction visualization. Implemented WebSocket connections for live updates and optimized database queries for fast search performance.",
+    "thumbnail": "https://placehold.co/800x600/a855f7/ffffff?text=Blockchain+Explorer",
+    "images": [
+      "https://placehold.co/800x600/a855f7/ffffff?text=Transaction+View",
+      "https://placehold.co/800x600/9333ea/ffffff?text=Block+Explorer"
+    ],
+    "technologies": ["Vue.js", "Node.js", "MongoDB", "WebSocket", "Bitcoin RPC"],
+    "category": "web",
+    "featured": false,
+    "completedDate": "2025-02-28",
+    "demoUrl": null,
+    "githubUrl": "https://github.com/user/blockchain-explorer",
+    "challenges": "Processing large volumes of blockchain data, ensuring data accuracy, optimizing search performance",
+    "results": "Processes 100k+ transactions daily, <500ms search response time, supports 5+ cryptocurrencies",
+    "reactionCounts": {
+      "like": 14,
+      "love": 8,
+      "celebrate": 4
+    },
+    "status": "published",
+    "order": 6
+  }
+]

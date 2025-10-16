@@ -1,0 +1,34 @@
+{
+  "name": "Alexander Butakov",
+  "tagline": "Full-Stack Developer specializing in modern web applications",
+  "bio": "Passionate developer with 5+ years of experience building scalable web applications. I specialize in creating elegant solutions to complex problems, with expertise in both frontend and backend development. My focus is on delivering high-quality, maintainable code that provides real value to users and businesses.",
+  "photoUrl": "https://placehold.co/400x400/3b82f6/ffffff?text=Alexander+Butakov",
+  "yearsExperience": 5,
+  "location": "Russia, Yekaterinburg",
+  "skills": [
+    {
+      "category": "Frontend",
+      "items": ["React", "Vue.js", "Tailwind CSS", "TypeScript", "Vite"]
+    },
+    {
+      "category": "Backend",
+      "items": ["Node.js", "Express", "PostgreSQL", "MongoDB", "Redis"]
+    },
+    {
+      "category": "DevOps",
+      "items": ["Docker", "CI/CD", "AWS", "Netlify", "Git"]
+    },
+    {
+      "category": "Tools & Practices",
+      "items": ["Agile", "TDD", "Code Review", "Technical Writing", "Mentoring"]
+    }
+  ],
+  "socialLinks": {
+    "github": "https://github.com/SaintBooth",
+    "linkedin": "https://www.linkedin.com/in/sashabooth/",
+    "twitter": null
+  },
+  "contactEmail": "hello@butakov.dev",
+  "telegram": "@saintbooth",
+  "availability": "available"
+}

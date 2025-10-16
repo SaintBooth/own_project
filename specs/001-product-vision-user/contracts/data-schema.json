@@ -1,0 +1,358 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://portfolio.example.com/schemas/data-schema.json",
+  "title": "Portfolio Website Data Schema",
+  "description": "JSON Schema for all data files in the portfolio website",
+  "definitions": {
+    "Project": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "slug",
+        "description",
+        "longDescription",
+        "thumbnail",
+        "technologies",
+        "category",
+        "completedDate",
+        "status"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Unique identifier in kebab-case"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Project display name"
+        },
+        "slug": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "URL-safe slug for routing"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 50,
+          "maxLength": 500,
+          "description": "Brief overview for card display"
+        },
+        "longDescription": {
+          "type": "string",
+          "minLength": 200,
+          "maxLength": 2000,
+          "description": "Detailed description for project detail page"
+        },
+        "thumbnail": {
+          "type": "string",
+          "format": "uri-reference",
+          "description": "Path or URL to thumbnail image (recommended: 600x400px, max 200KB)"
+        },
+        "images": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "maxItems": 10,
+          "description": "Additional screenshots/images for detail view"
+        },
+        "technologies": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 30
+          },
+          "minItems": 1,
+          "maxItems": 10,
+          "description": "Tech stack tags"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["web", "mobile", "design", "other"],
+          "description": "Project category for filtering"
+        },
+        "featured": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to highlight on homepage"
+        },
+        "completedDate": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "description": "Project completion date in YYYY-MM-DD format"
+        },
+        "demoUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "Link to live demo or website"
+        },
+        "githubUrl": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://github\\.com/",
+          "description": "Link to GitHub repository"
+        },
+        "challenges": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Key challenges solved"
+        },
+        "results": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Project outcomes and impact"
+        },
+        "reactionCounts": {
+          "type": "object",
+          "properties": {
+            "like": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            },
+            "love": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            },
+            "celebrate": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          "additionalProperties": false,
+          "description": "Aggregated reaction counts"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["published", "draft", "archived"],
+          "description": "Publication status"
+        },
+        "order": {
+          "type": "integer",
+          "default": 0,
+          "description": "Sort order (lower numbers first)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Service": {
+      "type": "object",
+      "required": ["id", "title", "description", "deliverables"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Unique identifier in kebab-case"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Service name"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 100,
+          "maxLength": 500,
+          "description": "Service overview"
+        },
+        "icon": {
+          "type": "string",
+          "description": "Icon name or SVG path"
+        },
+        "deliverables": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "minItems": 1,
+          "maxItems": 10,
+          "description": "What client receives"
+        },
+        "processSteps": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "maxItems": 10,
+          "description": "High-level process overview"
+        },
+        "estimatedDuration": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Typical project duration (e.g., '2-4 weeks')"
+        },
+        "priceRange": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Price range (e.g., '$5,000 - $15,000')"
+        },
+        "featured": {
+          "type": "boolean",
+          "default": false,
+          "description": "Highlight on homepage"
+        },
+        "order": {
+          "type": "integer",
+          "default": 0,
+          "description": "Display order"
+        }
+      },
+      "additionalProperties": false
+    },
+    "AboutContent": {
+      "type": "object",
+      "required": [
+        "name",
+        "tagline",
+        "bio",
+        "photoUrl",
+        "yearsExperience",
+        "skills",
+        "contactEmail"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Developer's full name"
+        },
+        "tagline": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "Professional tagline/headline"
+        },
+        "bio": {
+          "type": "string",
+          "minLength": 200,
+          "maxLength": 1000,
+          "description": "Professional biography"
+        },
+        "photoUrl": {
+          "type": "string",
+          "format": "uri-reference",
+          "description": "Path to professional photo (recommended: 400x400px, max 500KB)"
+        },
+        "yearsExperience": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Years of professional experience"
+        },
+        "location": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "City/country"
+        },
+        "skills": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["category", "items"],
+            "properties": {
+              "category": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 50,
+                "description": "Skill category name"
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 50
+                },
+                "minItems": 1,
+                "maxItems": 20,
+                "description": "Skills in this category"
+              }
+            },
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "maxItems": 20,
+          "description": "Skill categories with items"
+        },
+        "socialLinks": {
+          "type": "object",
+          "properties": {
+            "github": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^https://github\\.com/"
+            },
+            "linkedin": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^https://(www\\.)?linkedin\\.com/"
+            },
+            "twitter": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^https://(www\\.)?twitter\\.com/|^https://(www\\.)?x\\.com/"
+            }
+          },
+          "additionalProperties": true,
+          "description": "Social media and professional links"
+        },
+        "contactEmail": {
+          "type": "string",
+          "format": "email",
+          "description": "Professional email address"
+        },
+        "telegram": {
+          "type": "string",
+          "pattern": "^@?[a-zA-Z0-9_]{5,32}$",
+          "description": "Telegram username (with or without @)"
+        },
+        "availability": {
+          "type": "string",
+          "enum": ["available", "limited", "unavailable"],
+          "default": "available",
+          "description": "Current availability status"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "projects": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Project"
+      },
+      "description": "Array of project entities (stored in src/data/projects.json)"
+    },
+    "services": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Service"
+      },
+      "description": "Array of service entities (stored in src/data/services.json)"
+    },
+    "about": {
+      "$ref": "#/definitions/AboutContent",
+      "description": "About content (stored in src/data/about.json as single object)"
+    }
+  }
+}

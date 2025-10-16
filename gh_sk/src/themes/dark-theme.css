@@ -1,0 +1,30 @@
+/* Dark Theme Variables - Moodboard */
+.dark {
+  /* Background Colors - Dark Mode */
+  --color-bg-primary: #0B0C0F;      /* Graphite */
+  --color-bg-secondary: #161719;
+  --color-bg-tertiary: #1f2022;
+
+  /* Text Colors - Dark Mode */
+  --color-text-primary: #F5F7FA;    /* Fog */
+  --color-text-secondary: #d1d5db;
+  --color-text-tertiary: #9ca3af;
+
+  /* Border Colors - Dark Mode */
+  --color-border: #2d2e31;
+  --color-border-hover: #3d3e41;
+
+  /* Primary Colors - Moodboard (slightly brighter for dark mode) */
+  --color-primary: #0FD4C8;         /* Turquoise */
+  --color-primary-hover: #1ae5d8;
+  --color-secondary: #7C3AED;       /* Violet */
+  --color-secondary-hover: #8b5cf6;
+  --color-accent: #22C55E;          /* Lime */
+  --color-accent-hover: #34d399;
+
+  /* Shadows (lighter for dark mode) */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 10px 10px -5px rgba(0, 0, 0, 0.5);
+}

@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell.exe:*)",
+      "Read(//c/dev/specs/001-product-vision-user/**)",
+      "Read(//c/dev/specs/001-product-vision-user/contracts/**)",
+      "Bash(npm init -y)",
+      "Bash(npm install:*)",
+      "Bash(npx tailwindcss init:*)",
+      "Bash(npm run dev)",
+      "Bash(npm uninstall:*)",
+      "Bash(taskkill:*)",
+      "WebFetch(domain:butakov.dev)",
+      "Bash(powershell:*)",
+      "Bash(cat:*)",
+      "Bash(git checkout:*)",
+      "Bash(git remote add:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nFix all 8 specification errors and establish project constitution\n\n- Populate constitution.md with 7 core principles (Progressive Enhancement, Mobile-First, Accessibility, Performance Budget, Component Architecture, Test Coverage, Semantic HTML)\n- Resolve placeholder for mobile traffic percentage (40-60%)\n- Specify project detail fields (description, technologies, links, screenshots, challenges, outcomes)\n- Define bilingual support (Russian/English with language toggle)\n- Clarify theme change mechanism (matchMedia change event listener for FR-023)\n- Document form backend (FormSubmit.co for MVP)\n- Add data migration path (Node.js/Express with SQL for future)\n- Fix component naming inconsistency (Reactions.js matches actual implementation)\n\nAll specification documents now consistent and ready for implementation.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)",
+      "Bash(git remote set-url:*)",
+      "Read(//c/dev/**)",
+      "Bash(git rm:*)",
+      "Bash(git ls-tree:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -1,0 +1,144 @@
+{
+  "nav": {
+    "home": "Home",
+    "projects": "Projects",
+    "about": "About",
+    "services": "Services",
+    "contact": "Contact"
+  },
+  "home": {
+    "title": "Developer Portfolio",
+    "viewWork": "View My Work",
+    "getInTouch": "Get In Touch",
+    "featuredProjects": "Featured Projects",
+    "featuredProjectsDesc": "Check out some of my recent work showcasing modern web development practices.",
+    "viewAll": "View All Projects",
+    "skills": "Skills & Expertise",
+    "skillsDesc": "Technologies and tools I use to bring ideas to life.",
+    "readyToStart": "Ready to Start a Project?",
+    "availableFor": "I'm currently {status} for new projects. Let's discuss how I can help bring your ideas to life.",
+    "available": "available",
+    "notAvailable": "not available",
+    "contactMe": "Contact Me",
+    "viewServices": "View Services"
+  },
+  "projects": {
+    "title": "My Projects",
+    "description": "Explore my portfolio of projects showcasing modern web development practices and creative solutions.",
+    "filter": "Filter:",
+    "allProjects": "All Projects",
+    "sortBy": "Sort by:",
+    "sortOrder": "Default Order",
+    "sortTitleAsc": "Title (A-Z)",
+    "sortTitleDesc": "Title (Z-A)",
+    "sortDateDesc": "Newest First",
+    "sortDateAsc": "Oldest First",
+    "sortReactions": "Most Popular",
+    "showing": "Showing",
+    "project": "project",
+    "projects": "projects",
+    "noProjects": "No Projects Found",
+    "noProjectsDesc": "Try adjusting your filters or check back later for new projects.",
+    "viewDetails": "View Details",
+    "completedDate": "Completed:",
+    "category": {
+      "web": "Web",
+      "mobile": "Mobile",
+      "desktop": "Desktop"
+    }
+  },
+  "projectDetail": {
+    "backToProjects": "← Back to Projects",
+    "overview": "Overview",
+    "technologies": "Technologies Used",
+    "challenges": "Challenges",
+    "results": "Results",
+    "gallery": "Gallery",
+    "reactions": "Show Your Support",
+    "reactionsDesc": "Let me know what you think about this project!",
+    "like": "Like",
+    "love": "Love",
+    "celebrate": "Celebrate",
+    "peopleReacted": "{count} {people} reacted to this project",
+    "person": "person has",
+    "people": "people have",
+    "quickLinks": "Quick Links",
+    "viewDemo": "View Live Demo",
+    "viewGithub": "View on GitHub",
+    "interested": "Interested in This Project?",
+    "interestedDesc": "Have questions or want to discuss a similar project? Get in touch!",
+    "messageTelegram": "Message on Telegram",
+    "sendEmail": "Send Email"
+  },
+  "about": {
+    "title": "About Me",
+    "yearsExp": "{years}+ years experience",
+    "skills": "Skills & Expertise",
+    "workTogether": "Let's Work Together",
+    "availableMsg": "I'm {status} for new projects. {message}",
+    "availableTrue": "currently available",
+    "availableFalse": "not currently available",
+    "availableMsgTrue": "Let's discuss how I can help bring your ideas to life.",
+    "availableMsgFalse": "Feel free to reach out for future opportunities."
+  },
+  "services": {
+    "title": "Services",
+    "description": "Professional development services tailored to your needs",
+    "deliverables": "Deliverables:",
+    "timeline": "Timeline:",
+    "startingAt": "Starting at:",
+    "readyToStart": "Ready to Start Your Project?",
+    "readyDesc": "Let's discuss your project requirements and how I can help you achieve your goals.",
+    "getFreeConsultation": "Get a Free Consultation",
+    "howItWorks": "How It Works",
+    "processSteps": {
+      "discovery": {
+        "title": "Discovery",
+        "desc": "We discuss your project goals and requirements"
+      },
+      "planning": {
+        "title": "Planning",
+        "desc": "I create a detailed proposal and timeline"
+      },
+      "development": {
+        "title": "Development",
+        "desc": "Building your solution with regular updates"
+      },
+      "delivery": {
+        "title": "Delivery",
+        "desc": "Testing, deployment, and ongoing support"
+      }
+    }
+  },
+  "contact": {
+    "title": "Get In Touch",
+    "description": "Let's discuss your project and bring your ideas to life",
+    "sendMessage": "Send a Message",
+    "yourName": "Your Name",
+    "email": "Email Address",
+    "subject": "Subject",
+    "message": "Message",
+    "messagePlaceholder": "Tell me about your project...",
+    "send": "Send Message",
+    "sending": "Sending...",
+    "successMessage": "Thank you for your message! I'll get back to you soon.",
+    "contactInfo": "Contact Information",
+    "location": "Location",
+    "availability": "Availability",
+    "currentlyAvailable": "✅ Currently Available",
+    "notAvailable": "❌ Not Available",
+    "connectSocial": "Connect on Social Media"
+  },
+  "footer": {
+    "about": "Full-Stack Developer specializing in modern web applications. Building elegant solutions to complex problems.",
+    "quickLinks": "Quick Links",
+    "connect": "Connect",
+    "allRights": "All rights reserved"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "tryAgain": "Try again later",
+    "featured": "Featured"
+  }
+}

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Modern developer portfolio showcasing projects and skills">
+  <meta name="theme-color" content="#3b82f6">
+
+  <!-- Prevent FOUC (Flash of Unstyled Content) - Theme initialization -->
+  <script>
+    // Initialize theme before page renders
+    (function() {
+      const storedTheme = localStorage.getItem('portfolio:theme');
+      const theme = storedTheme ? JSON.parse(storedTheme) : null;
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+      if ((theme && theme.mode === 'dark') || (!theme && prefersDark)) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+
+  <link rel="stylesheet" href="./styles/main.css">
+  <title>Developer Portfolio</title>
+</head>
+<body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+  <!-- Skip navigation link for accessibility -->
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-light focus:text-white focus:rounded">
+    Skip to main content
+  </a>
+
+  <!-- Header will be mounted here -->
+  <div id="header-root"></div>
+
+  <!-- Main content container -->
+  <main id="main-content" class="min-h-screen">
+    <div id="app-root"></div>
+  </main>
+
+  <!-- Footer will be mounted here -->
+  <div id="footer-root"></div>
+
+  <!-- Application entry point -->
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
