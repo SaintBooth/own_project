@@ -128,6 +128,56 @@ class SellerProfile(models.Model):
         return f"SellerProfile({self.user.username}, {self.kyc_status})"
 
 
+class OTPRequest(models.Model):
+    """
+    Запрос OTP кода (аудит). Основная защита — в Redis (Lua-атомарная).
+    Источник: §5.1
+    """
+
+    email = models.EmailField(db_index=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "OTP запрос"
+        verbose_name_plural = "OTP запросы"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["email", "created_at"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"OTPRequest({self.email}, {self.created_at})"
+
+
+class RefreshToken(models.Model):
+    """
+    Refresh token для JWT rotation + Redis blacklist.
+    Источник: §5.2
+
+    jti → JWT ID, blacklist: jwt:revoked:{jti} в Redis.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="refresh_tokens",
+    )
+    jti = models.UUIDField(unique=True, db_index=True)
+    is_revoked = models.BooleanField(default=False, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    class Meta:
+        verbose_name = "Refresh token"
+        verbose_name_plural = "Refresh tokens"
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"RefreshToken({self.user_id}, revoked={self.is_revoked})"
+
+
 class ApiKey(models.Model):
     """
     API ключи для Agentic AI (M2M, §5.7).

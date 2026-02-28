@@ -2,7 +2,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from apps.users.models import ApiKey, SellerProfile, User
+from apps.users.models import ApiKey, OTPRequest, RefreshToken, SellerProfile, User
 
 
 @admin.register(User)
@@ -61,3 +61,19 @@ class ApiKeyAdmin(admin.ModelAdmin):
         if obj:
             return self.readonly_fields + ["user"]
         return self.readonly_fields
+
+
+@admin.register(OTPRequest)
+class OTPRequestAdmin(admin.ModelAdmin):
+    list_display = ["email", "ip_address", "created_at"]
+    list_filter = ["created_at"]
+    search_fields = ["email"]
+    readonly_fields = ["email", "ip_address", "created_at"]
+
+
+@admin.register(RefreshToken)
+class RefreshTokenAdmin(admin.ModelAdmin):
+    list_display = ["user", "jti", "is_revoked", "created_at", "expires_at"]
+    list_filter = ["is_revoked"]
+    search_fields = ["user__username", "user__email"]
+    readonly_fields = ["id", "jti", "created_at"]

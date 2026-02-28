@@ -5,6 +5,8 @@ from django.urls import include, path
 from ninja import NinjaAPI
 
 from apps.core.api import router as health_router
+from apps.users.api.auth import router as auth_router
+from apps.prompts.api.catalog import router as catalog_router
 
 api = NinjaAPI(
     title="PromptSpace API",
@@ -13,6 +15,8 @@ api = NinjaAPI(
 )
 
 api.add_router("/", health_router)
+api.add_router("/auth", auth_router)
+api.add_router("/catalog", catalog_router)
 
 urlpatterns = [
     path("admin/", admin.site.urls),

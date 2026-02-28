@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Toaster } from "sonner";
+import { CookieConsent } from "@/components/cookie-consent";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -23,6 +25,11 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  openGraph: {
+    siteName: "PromptSpace",
+    locale: "ru_RU",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
@@ -34,6 +41,10 @@ export default function RootLayout({
     <html lang="ru">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
+        {/* Cookie consent — Метрика не инициализируется до согласия (152-ФЗ) */}
+        <CookieConsent />
+        {/* Toast notifications */}
+        <Toaster position="bottom-right" theme="dark" richColors />
       </body>
     </html>
   );

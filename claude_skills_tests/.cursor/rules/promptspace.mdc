@@ -8,7 +8,8 @@ alwaysApply: true
 ## Текущий статус проекта (2026-02-28)
 
 **Sprint 0 — ЗАВЕРШЁН** ✓ (Нед 1–2: Инфраструктура)
-**Sprint 1 — В РАБОТЕ** → (Нед 3–4: Auth + Каталог)
+**Sprint 1 — ЗАВЕРШЁН** ✓ (Нед 3–4: Auth + Каталог) — 36/36 тестов зелёных
+**Sprint 2 — В РАБОТЕ** → (Нед 5–6: Промпты + Шифрование + Платежи)
 
 ### Что реализовано в Sprint 0
 
@@ -43,15 +44,34 @@ alwaysApply: true
 - `docs/planning/promptspace-specs-sprints.md` — SPEC-001..013
 - `.cursor/rules/promptspace.mdc` (этот файл)
 
-### Sprint 1 — следующие задачи (SPEC-002 + часть SPEC-003)
+### Sprint 1 — ВЫПОЛНЕНО ✓
 
-- Email + OTP аутентификация (Redis Lua, TTL 5 мин, 5 попыток → блок 15 мин)
-- Yandex ID OAuth (P0), VK ID OAuth (P1)
-- JWT access (15 мин) + refresh (7 дней, HttpOnly), rotation, Redis blacklist
-- Модели: `OTPRequest`, `RefreshToken`, `SellerProfile`
-- API: `/auth/otp/send`, `/auth/otp/verify`, `/auth/refresh`, `/auth/logout`
-- Каталог промптов: `Prompt` модель, cursor-based pagination, статусы DRAFT→PUBLISHED
-- Frontend: `/auth/login`, OAuth callback, Zustand auth store
+**Backend:**
+- ✅ Email + OTP (Redis Lua атомарная, 5 попыток → 15 мин блок)
+- ✅ JWT access (15 мин) + refresh (7 дней, HttpOnly), rotation, Redis blacklist, fail-closed
+- ✅ Yandex ID OAuth сервис
+- ✅ Модели: `OTPRequest`, `RefreshToken`, `Prompt`, `Category`, `Tag`, `Favorite`, `PromptAccess`, `Purchase` (stub)
+- ✅ API: `/auth/otp/send`, `/auth/otp/verify`, `/auth/refresh`, `/auth/logout`, `/auth/yandex/callback`
+- ✅ Каталог: cursor-based pagination, фильтры, slug карточка
+- ✅ Тесты: 36 passed (0 failed)
+
+**Frontend:**
+- ✅ `/auth/login` — OTP форма с 6-digit input + OAuth кнопки (Yandex/VK/Telegram)
+- ✅ `/auth/callback/[provider]` — OAuth callback
+- ✅ Zustand auth store (access token in memory, refresh HttpOnly cookie)
+- ✅ Главная страница — каталог SSR + ISR 300s + фильтры + сортировка
+- ✅ `/prompts/[slug]` — SSR + ISR 300s + OG metadata
+- ✅ Cookie consent banner (Метрика не инициализируется до согласия — 152-ФЗ)
+
+### Sprint 2 — следующие задачи (SPEC-004 + SPEC-005)
+
+- Envelope Encryption: DEK (AES-256-GCM) + Vault Transit KEK
+- Seller CRUD: DRAFT → submit → PENDING_MODERATION
+- `GET /prompts/{id}/content/` расшифровка (порядок §25.8)
+- Robokassa Split: создание заказа + webhook (идемпотентность)
+- `process_purchase_success`: `PromptAccess` + `F()` atomically
+- Бесплатный промпт: acquire без Robokassa
+- YOS: presigned upload URL + confirm + magic bytes MIME
 
 ---
 

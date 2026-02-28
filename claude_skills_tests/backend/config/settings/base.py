@@ -54,6 +54,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 # ── Middleware ─────────────────────────────────────────────────────────────
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # сразу после Security, до всего
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -126,6 +127,10 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
+}
 
 # ── Redis ─────────────────────────────────────────────────────────────────
 REDIS_URL = env("REDIS_URL", default="redis://localhost:6379/0")
@@ -190,6 +195,21 @@ SITE_URL = env("SITE_URL", default="http://localhost:3000")
 # ── Django Ninja (§10, ADR-015) ───────────────────────────────────────────
 NINJA_DOCS_URL = env("DJANGO_NINJA_DOCS_URL", default=None)  # None = отключено
 NINJA_PAGINATION_PER_PAGE = 20
+
+# ── Yandex ID OAuth (§5.3, P0) ───────────────────────────────────────────
+YANDEX_CLIENT_ID = env("YANDEX_CLIENT_ID", default="")
+YANDEX_CLIENT_SECRET = env("YANDEX_CLIENT_SECRET", default="")
+YANDEX_REDIRECT_URI = env("YANDEX_REDIRECT_URI", default="http://localhost:8000/api/v1/auth/yandex/callback")
+
+# ── VK ID OAuth (§5.3, P1) ───────────────────────────────────────────────
+VK_CLIENT_ID = env("VK_CLIENT_ID", default="")
+VK_CLIENT_SECRET = env("VK_CLIENT_SECRET", default="")
+VK_REDIRECT_URI = env("VK_REDIRECT_URI", default="http://localhost:8000/api/v1/auth/vk/callback")
+
+# ── OTP settings (§5.1) ───────────────────────────────────────────────────
+OTP_TTL_SECONDS = env.int("OTP_TTL_SECONDS", default=300)           # 5 мин
+OTP_BLOCK_TTL_SECONDS = env.int("OTP_BLOCK_TTL_SECONDS", default=900)  # 15 мин
+OTP_MAX_ATTEMPTS = env.int("OTP_MAX_ATTEMPTS", default=5)
 
 # ── AISP Security Scan (ADR-016) ──────────────────────────────────────────
 AISP_PROVIDER = env("AISP_PROVIDER", default="stub")
