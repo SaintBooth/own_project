@@ -29,16 +29,16 @@ const nextConfig: NextConfig = {
           { key: "X-Frame-Options", value: "DENY" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-          // CSP: nonce-based в production (§12.13, убран 'unsafe-inline')
-          // Заменяется middleware с nonce в production
+          // CSP: 'unsafe-inline' для dev/Sprint-0.
+          // В production (Sprint 4) заменяется middleware с nonce (§12.13).
           {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'nonce-PLACEHOLDER'",
-              "style-src 'self' 'unsafe-inline'", // Tailwind требует inline в dev
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https://storage.yandexcloud.net",
-              "font-src 'self'",
+              "font-src 'self' data:",
               "connect-src 'self' https://mc.yandex.ru",
               "frame-ancestors 'none'",
             ].join("; "),
