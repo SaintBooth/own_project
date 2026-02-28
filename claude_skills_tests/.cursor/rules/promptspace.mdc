@@ -1,0 +1,125 @@
+---
+description: PromptSpace project rules — AI marketplace for Russian market. Django 5 + Next.js 15.
+alwaysApply: true
+---
+
+# PromptSpace — Project Rules
+
+## Текущий статус проекта (2026-02-28)
+
+**Sprint 0 — ЗАВЕРШЁН** ✓ (Нед 1–2: Инфраструктура)
+**Sprint 1 — В РАБОТЕ** → (Нед 3–4: Auth + Каталог)
+
+### Что реализовано в Sprint 0
+
+**Infrastructure / DevOps:**
+- `docker-compose.yml` — 9 сервисов: PostgreSQL 16+pgvector, PgBouncer (transaction), Redis 7, Vault (dev), Django (gunicorn), Celery worker, Celery Beat, Next.js 15, Nginx
+- `docker/nginx/nginx.conf` — TLS 1.3, HSTS, Brotli/Gzip, `server_tokens off`, rate limit зоны
+- `docker/pgbouncer/pgbouncer.ini` + `userlist.txt` — pooling config
+- `docker/vault/vault.hcl` — Vault dev конфиг с Transit secrets engine
+- `Makefile` — все dev/CI команды (up, migrate, test, lint, vault-init, setup и др.)
+- `scripts/check-services.sh`, `scripts/verify-mcp.sh`
+
+**Backend (Django 5 + Django Ninja):**
+- `backend/config/settings/` — base, local, staging, production, test (multi-env)
+- `backend/config/celery.py` — Celery 5, 5 очередей: default/embeddings/notifications/payments/gdpr
+- `backend/config/middleware.py` — `RequestIdMiddleware` (OpenTelemetry trace correlation)
+- `backend/config/urls.py` + `wsgi.py`
+- `backend/apps/users/models.py` — кастомная `User` модель: UUID PK, email nullable (VK OAuth), `UserRole`, `KycStatus`, `LegalType`, `is_deleted`/`deleted_at` (soft delete), `consent_pd_at` (datetime, 152-ФЗ), `avatar_object_key`
+- `backend/apps/users/managers.py`, `admin.py`, `apps.py`, миграции 0001+0002
+- `backend/apps/` — scaffold: prompts, payments, notifications, moderation, core (health API), analytics
+- `backend/apps/core/api.py` — health endpoint
+- `pyproject.toml` — ruff (py312, strict), mypy (strict, django-stubs), pytest, coverage (≥80%)
+- `backend/requirements/` — base.txt, local.txt, production.txt (Django 5.1, Ninja, psycopg3, pgvector, hvac, cryptography, boto3, PyJWT, Celery, OTel, Sentry)
+- `backend/tests/test_health.py` + `conftest.py`
+
+**Frontend (Next.js 15 App Router):**
+- `frontend/` — TypeScript strict, shadcn/ui + Tailwind v4, vitest
+- `frontend/app/layout.tsx`, `page.tsx`, `globals.css`
+- `frontend/components/`, `frontend/stores/`, `frontend/lib/`
+
+**Docs & Config:**
+- `docs/spec/promptspace-release.md` — v2.3 (source of truth)
+- `docs/planning/promptspace-specs-sprints.md` — SPEC-001..013
+- `.cursor/rules/promptspace.mdc` (этот файл)
+
+### Sprint 1 — следующие задачи (SPEC-002 + часть SPEC-003)
+
+- Email + OTP аутентификация (Redis Lua, TTL 5 мин, 5 попыток → блок 15 мин)
+- Yandex ID OAuth (P0), VK ID OAuth (P1)
+- JWT access (15 мин) + refresh (7 дней, HttpOnly), rotation, Redis blacklist
+- Модели: `OTPRequest`, `RefreshToken`, `SellerProfile`
+- API: `/auth/otp/send`, `/auth/otp/verify`, `/auth/refresh`, `/auth/logout`
+- Каталог промптов: `Prompt` модель, cursor-based pagination, статусы DRAFT→PUBLISHED
+- Frontend: `/auth/login`, OAuth callback, Zustand auth store
+
+---
+
+## Stack
+- **Backend:** Django 5 + Django Ninja, Python 3.12+, Celery 5
+- **Frontend:** Next.js 15 App Router, TypeScript strict, shadcn/ui + Tailwind v4
+- **DB:** PostgreSQL 16 + pgvector, PgBouncer (transaction mode)
+- **Cache/Queue:** Redis 7 (Sentinel in prod), Celery 5 queues: `default`, `embeddings`, `notifications`, `payments`, `gdpr`
+- **KMS:** HashiCorp Vault HA — единственный источник KEK
+- **Storage:** Yandex Object Storage (S3-compatible)
+- **Embeddings:** YandexGPT Embeddings v3 или GigaChat — OpenAI **запрещён** (152-ФЗ)
+
+## Docs Location
+- Spec: `docs/spec/promptspace-release.md` (v2.3, source of truth)
+- Sprints: `docs/planning/promptspace-specs-sprints.md`
+- MCP ref: `docs/reference/mcp-servers.md`
+
+## Critical Python Rules
+
+### BinaryField → всегда bytes()
+```python
+# НЕПРАВИЛЬНО — TypeError в runtime
+cipher.decrypt(prompt.encrypted_content)
+# ПРАВИЛЬНО
+cipher.decrypt(bytes(prompt.encrypted_content))
+```
+
+### Счётчики → только F()
+```python
+# НЕПРАВИЛЬНО — race condition
+prompt.purchases_count += 1; prompt.save()
+# ПРАВИЛЬНО
+Prompt.objects.filter(pk=pk).update(purchases_count=F("purchases_count") + 1)
+```
+
+### Идемпотентность в webhook/Celery
+```python
+purchase = Purchase.objects.select_for_update().get(pk=id)
+if purchase.status != PurchaseStatus.PENDING:
+    return  # no-op, не raise
+```
+
+### Порядок расшифровки (§25.8)
+1. Проверить PromptAccess → 2. Fetch encrypted_dek → 3. Vault Transit decrypt → 4. aes_gcm_decrypt(bytes(…))
+
+### Порядок публикации (§25.9) — атомарно
+`published_at` → `content_hash` → `status=PUBLISHED` — в одной транзакции
+
+## Critical Security Rules
+- **Никогда не логировать:** plaintext промпты, DEK, API ключи, OTP, refresh tokens
+- JWT blacklist недоступен → **fail closed** (401), не fail open
+- Rate limit зона `api_agent` → ключ = хеш токена, не plaintext
+- `VAULT_TOKEN` в production запрещён → только AppRole (`VAULT_ROLE_ID` + `VAULT_SECRET_ID`)
+- OpenAPI `/docs` отключён в production: `DJANGO_NINJA_DOCS_URL=""`
+- 152-ФЗ: Telegram сообщения — **без ПДн** (email, имена, суммы, названия промптов)
+
+## Frontend Rules
+- Server Components = каталог, карточки, SEO страницы (по умолчанию)
+- Client Components = формы, Zustand stores, polling (`"use client"`)
+- ISR revalidate каталога: 300 сек; при публикации → `revalidatePath()`
+- Нonce-based CSP: `'unsafe-inline'` запрещён
+
+## Запрещено в коде
+1. `import openai` — нарушение 152-ФЗ
+2. `BinaryField` без `bytes()` обёртки
+3. `obj.counter += 1; obj.save()` — race condition
+4. Хранить API ключ plaintext в БД
+5. `DEBUG=True` в production settings
+6. ПДн в Telegram сообщениях
+
+Используй context7 MCP, когда мне нужна документация по библиотекам/API, генерация кода, шаги по настройке или конфигурации без необходимости явного запроса с моей стороны.

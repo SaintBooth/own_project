@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PromptSpace — Frontend Audit Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Instrument+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0c0c0f;
+    --surface:   #131318;
+    --border:    #1f1f2a;
+    --border-hi: #2e2e40;
+    --text:      #e8e8f0;
+    --muted:     #6b6b80;
+    --accent:    #f5a623;
+    --crit:      #ff4757;
+    --high:      #ff6b35;
+    --med:       #f5a623;
+    --low:       #3ecf8e;
+    --info:      #4f8ef7;
+    --crit-bg:   rgba(255,71,87,.08);
+    --high-bg:   rgba(255,107,53,.08);
+    --med-bg:    rgba(245,166,35,.08);
+    --low-bg:    rgba(62,207,142,.08);
+    --info-bg:   rgba(79,142,247,.08);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .site-header {
+    border-bottom: 1px solid var(--border);
+    padding: 0 48px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(12,12,15,.92);
+    backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+  }
+  .site-header .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+  .site-header .logo span { color: var(--accent); }
+  .header-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    gap: 24px;
+  }
+  .header-meta b { color: var(--text); }
+
+  /* HERO */
+  .hero {
+    padding: 80px 48px 56px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -120px; right: -80px;
+    width: 500px; height: 500px;
+    background: radial-gradient(ellipse, rgba(245,166,35,.07) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(32px, 5vw, 54px);
+    line-height: 1.1;
+    letter-spacing: -.02em;
+    max-width: 700px;
+    margin-bottom: 20px;
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+  .hero p {
+    color: var(--muted);
+    max-width: 560px;
+    font-size: 15px;
+  }
+
+  /* DASHBOARD */
+  .dashboard {
+    padding: 40px 48px;
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 22px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .stat-card.crit::after { background: var(--crit); }
+  .stat-card.high::after { background: var(--high); }
+  .stat-card.med::after  { background: var(--med);  }
+  .stat-card.low::after  { background: var(--low);  }
+  .stat-card .count {
+    font-family: 'Syne', sans-serif;
+    font-size: 40px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .stat-card.crit .count { color: var(--crit); }
+  .stat-card.high .count { color: var(--high); }
+  .stat-card.med  .count { color: var(--med);  }
+  .stat-card.low  .count { color: var(--low);  }
+  .stat-card .label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+  .stat-summary {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .stat-summary .verdict {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .stat-summary .verdict-sub {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .score-bar {
+    margin-top: 14px;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .score-fill {
+    height: 100%;
+    width: 35%;
+    background: linear-gradient(90deg, var(--crit), var(--med));
+    border-radius: 3px;
+  }
+
+  /* MAIN LAYOUT */
+  .content {
+    padding: 48px;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 48px;
+    align-items: start;
+  }
+
+  /* SIDEBAR NAV */
+  .sidebar {
+    position: sticky;
+    top: 72px;
+  }
+  .sidebar-section {
+    margin-bottom: 28px;
+  }
+  .sidebar-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+    padding: 0 8px;
+  }
+  .sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 13px;
+    transition: all .15s;
+  }
+  .sidebar-link:hover { background: var(--surface); color: var(--text); }
+  .sidebar-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot-crit { background: var(--crit); }
+  .dot-high { background: var(--high); }
+  .dot-med  { background: var(--med); }
+  .dot-low  { background: var(--low); }
+
+  /* FINDINGS */
+  .findings { display: flex; flex-direction: column; gap: 24px; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 8px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-header h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .section-badge {
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+  }
+  .badge-crit { background: var(--crit-bg); color: var(--crit); border: 1px solid rgba(255,71,87,.2); }
+  .badge-high { background: var(--high-bg); color: var(--high); border: 1px solid rgba(255,107,53,.2); }
+  .badge-med  { background: var(--med-bg);  color: var(--med);  border: 1px solid rgba(245,166,35,.2); }
+  .badge-low  { background: var(--low-bg);  color: var(--low);  border: 1px solid rgba(62,207,142,.2); }
+  .badge-info { background: var(--info-bg); color: var(--info); border: 1px solid rgba(79,142,247,.2); }
+
+  .finding-group { margin-bottom: 40px; }
+  .finding-group-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--muted);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .finding-group-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .finding {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px 24px;
+    margin-bottom: 12px;
+    transition: border-color .2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .finding::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+  }
+  .finding.crit::before { background: var(--crit); }
+  .finding.high::before { background: var(--high); }
+  .finding.med::before  { background: var(--med); }
+  .finding.low::before  { background: var(--low); }
+  .finding:hover { border-color: var(--border-hi); }
+
+  .finding-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 10px;
+  }
+  .finding-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .finding-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .finding-body {
+    color: var(--muted);
+    font-size: 13.5px;
+    line-height: 1.65;
+    margin-bottom: 14px;
+  }
+  .finding-body strong { color: var(--text); font-weight: 500; }
+  .finding-body code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: rgba(255,255,255,.05);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--text);
+  }
+
+  .finding-rec {
+    background: rgba(255,255,255,.03);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 12px 16px;
+  }
+  .finding-rec-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .finding-rec p {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.55;
+  }
+  .finding-rec code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    background: rgba(255,255,255,.05);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+  }
+  .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,.04);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  /* IMPACT MATRIX */
+  .impact-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 0;
+  }
+  .impact-label { font-size: 12px; color: var(--muted); }
+  .impact-dots { display: flex; gap: 3px; }
+  .impact-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+  }
+  .impact-dot.active.crit { background: var(--crit); }
+  .impact-dot.active.high { background: var(--high); }
+  .impact-dot.active.med  { background: var(--med);  }
+  .impact-dot.active.low  { background: var(--low);  }
+
+  /* SEPARATOR */
+  .group-sep {
+    height: 1px;
+    background: var(--border);
+    margin: 32px 0;
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 24px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  footer p {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .finding { animation: fadeUp .3s ease both; }
+  .finding:nth-child(1) { animation-delay: .05s; }
+  .finding:nth-child(2) { animation-delay: .1s;  }
+  .finding:nth-child(3) { animation-delay: .15s; }
+  .finding:nth-child(4) { animation-delay: .2s;  }
+  .finding:nth-child(5) { animation-delay: .25s; }
+
+  @media (max-width: 900px) {
+    .content { grid-template-columns: 1fr; }
+    .sidebar { position: static; }
+    .dashboard { grid-template-columns: repeat(2, 1fr); }
+    .site-header, .hero, .dashboard, .content, footer { padding-left: 20px; padding-right: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="logo">Prompt<span>Space</span> · Frontend Audit</div>
+  <div class="header-meta">
+    <span>Версия спецификации: <b>2.0</b></span>
+    <span>Дата: <b>2026-02-27</b></span>
+    <span>Находок: <b>22</b></span>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">// frontend design review · promptspace-release.md</div>
+  <h1>Раздел Frontend содержит <em>критические пробелы</em></h1>
+  <p>Документация охватывает архитектуру бэкенда на уровне production-ready, но фронтенд-спецификация остаётся на уровне скелета. Разработчик Next.js не сможет начать работу без дополнительных решений по дизайн-системе, UX-флоу и ключевым техническим выборам.</p>
+</section>
+
+<!-- DASHBOARD -->
+<div class="dashboard">
+  <div class="stat-card crit">
+    <div class="count">4</div>
+    <div class="label">Critical</div>
+  </div>
+  <div class="stat-card high">
+    <div class="count">8</div>
+    <div class="label">High</div>
+  </div>
+  <div class="stat-card med">
+    <div class="count">7</div>
+    <div class="label">Medium</div>
+  </div>
+  <div class="stat-card low">
+    <div class="count">3</div>
+    <div class="label">Low</div>
+  </div>
+  <div class="stat-summary">
+    <div>
+      <div class="verdict">Frontend Completeness</div>
+      <div class="verdict-sub">Раздел 12 покрывает ~35% необходимой информации для начала разработки</div>
+    </div>
+    <div class="score-bar">
+      <div class="score-fill"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="content">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Critical</div>
+      <a class="sidebar-link" href="#crit"><span class="sidebar-dot dot-crit"></span>Дизайн-система</a>
+      <a class="sidebar-link" href="#crit"><span class="sidebar-dot dot-crit"></span>Real-time уведомления</a>
+      <a class="sidebar-link" href="#crit"><span class="sidebar-dot dot-crit"></span>ENV переменные</a>
+      <a class="sidebar-link" href="#crit"><span class="sidebar-dot dot-crit"></span>Error boundaries</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">High</div>
+      <a class="sidebar-link" href="#high"><span class="sidebar-dot dot-high"></span>Loading states</a>
+      <a class="sidebar-link" href="#high"><span class="sidebar-dot dot-high"></span>Валидация форм</a>
+      <a class="sidebar-link" href="#high"><span class="sidebar-dot dot-high"></span>KYC onboarding UX</a>
+      <a class="sidebar-link" href="#high"><span class="sidebar-dot dot-high"></span>Контент промпта</a>
+      <a class="sidebar-link" href="#high"><span class="sidebar-dot dot-high"></span>Оплата UX</a>
+      <a class="sidebar-link" href="#high"><span class="sidebar-dot dot-high"></span>Загрузка файлов</a>
+      <a class="sidebar-link" href="#high"><span class="sidebar-dot dot-high"></span>Аналитика продавца</a>
+      <a class="sidebar-link" href="#high"><span class="sidebar-dot dot-high"></span>Frontend CI</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Medium · Low</div>
+      <a class="sidebar-link" href="#med"><span class="sidebar-dot dot-med"></span>Accessibility</a>
+      <a class="sidebar-link" href="#med"><span class="sidebar-dot dot-med"></span>Cookie consent UI</a>
+      <a class="sidebar-link" href="#med"><span class="sidebar-dot dot-med"></span>ISR стратегия</a>
+      <a class="sidebar-link" href="#low"><span class="sidebar-dot dot-low"></span>Прочие</a>
+    </div>
+  </nav>
+
+  <!-- FINDINGS -->
+  <div class="findings">
+
+    <!-- CRITICAL -->
+    <div id="crit" class="finding-group">
+      <div class="section-header">
+        <h2>Critical</h2>
+        <span class="section-badge badge-crit">Blocker для начала разработки</span>
+      </div>
+
+      <div class="finding crit">
+        <div class="finding-id">FE-C01</div>
+        <div class="finding-header">
+          <div class="finding-title">Отсутствует дизайн-система и выбор UI-библиотеки</div>
+          <span class="section-badge badge-crit">Critical</span>
+        </div>
+        <div class="finding-body">
+          Вся документация не содержит ни слова о дизайн-токенах, цветовой палитре, типографике, сетке или компонентной библиотеке. Разработчик будет принимать эти решения в процессе, что неизбежно приведёт к несогласованному UI. Не определено: использовать ли <strong>shadcn/ui</strong>, <strong>Radix UI</strong>, <strong>Mantine</strong> или кастомные компоненты. Отсутствует: выбор шрифтовой пары, темновой/светлой темы, минимального набора дизайн-токенов (<code>--color-primary</code>, <code>--radius</code>, <code>--spacing</code>).
+        </div>
+        <div class="finding-rec">
+          <div class="finding-rec-label">→ Рекомендация</div>
+          <p>Добавить раздел <strong>12.6. Design System</strong>: выбрать shadcn/ui + Tailwind CSS (оптимально для Next.js 15 App Router), зафиксировать цветовую систему (brand, neutral, semantic), типографику (<code>next/font</code> с конкретными семействами), брейкпоинты и базовую тему.</p>
+        </div>
+        <div class="tags">
+          <span class="tag">design-system</span>
+          <span class="tag">shadcn/ui</span>
+          <span class="tag">tailwind</span>
+          <span class="tag">tokens</span>
+        </div>
+      </div>
+
+      <div class="finding crit">
+        <div class="finding-id">FE-C02</div>
+        <div class="finding-header">
+          <div class="finding-title">Нет спецификации real-time доставки in-app уведомлений</div>
+          <span class="section-badge badge-crit">Critical</span>
+        </div>
+        <div class="finding-body">
+          Раздел 23 подробно описывает backend-доставку уведомлений (Celery, Email, Telegram), но полностью умалчивает о том, <strong>как in-app уведомления появляются в браузере в реальном времени</strong>. Есть три варианта с разными реализациями: Server-Sent Events, WebSocket (Django Channels), или polling. Документ даёт только endpoint <code>GET /users/me/notifications/</code>, но не говорит: клиент должен поллить? с каким интервалом? или есть push?
+        </div>
+        <div class="finding-rec">
+          <div class="finding-rec-label">→ Рекомендация</div>
+          <p>Добавить <strong>23.7. Доставка в браузер</strong>: явно выбрать один механизм. Для MVP — <strong>polling каждые 30 сек</strong> при открытом дашборде (простота). Для v2 — SSE через <code>GET /api/v1/events/</code> (без Django Channels, через Nginx buffering). Зафиксировать badge-счётчик непрочитанных в Zustand store.</p>
+        </div>
+        <div class="tags">
+          <span class="tag">SSE</span>
+          <span class="tag">websocket</span>
+          <span class="tag">polling</span>
+          <span class="tag">zustand</span>
+        </div>
+      </div>
+
+      <div class="finding crit">
+        <div class="finding-id">FE-C03</div>
+        <div class="finding-header">
+          <div class="finding-title">Раздел 19 (env vars) не содержит ни одной NEXT_PUBLIC_ переменной</div>
+          <span class="section-badge badge-crit">Critical</span>
+        </div>
+        <div class="finding-body">
+          В разделе 19 перечислены исключительно backend-переменные. Frontend-приложению Next.js нужны собственные публичные переменные. Без них разработчик не знает, как конфигурировать приложение. Как минимум отсутствуют: <code>NEXT_PUBLIC_API_URL</code>, <code>NEXT_PUBLIC_CAPTCHA_SITE_KEY</code> (для Turnstile/reCAPTCHA), <code>NEXT_PUBLIC_YANDEX_CLIENT_ID</code> (кнопка OAuth), <code>NEXT_PUBLIC_YM_COUNTER_ID</code> (Яндекс.Метрика), <code>NEXT_PUBLIC_TELEGRAM_BOT_USERNAME</code> (Login Widget).
+        </div>
+        <div class="finding-rec">
+          <div class="finding-rec-label">→ Рекомендация</div>
+          <p>Добавить подраздел <strong>19.2. Frontend ENV (NEXT_PUBLIC_*)</strong> с полным списком переменных окружения Next.js. Уточнить, какие переменные безопасно выставлять в браузер, а какие должны оставаться только на сервере (Server Components / route handlers).</p>
+        </div>
+        <div class="tags">
+          <span class="tag">env-vars</span>
+          <span class="tag">next.js</span>
+          <span class="tag">NEXT_PUBLIC</span>
+          <span class="tag">config</span>
+        </div>
+      </div>
+
+      <div class="finding crit">
+        <div class="finding-id">FE-C04</div>
+        <div class="finding-header">
+          <div class="finding-title">Нет стратегии Error Boundaries и fallback UI</div>
+          <span class="section-badge badge-crit">Critical</span>
+        </div>
+        <div class="finding-body">
+          Документ описывает поведение API при ошибках (401 → refresh, 403, 422, 500), но не определяет пользовательский опыт при ошибках на стороне UI. Что видит покупатель, если <strong>Vault недоступен и контент не расшифровывается</strong> (503)? Что показывается при сетевой ошибке в каталоге? Нет указаний на <code>error.tsx</code>, <code>not-found.tsx</code>, <code>global-error.tsx</code> в Next.js App Router.
+        </div>
+        <div class="finding-rec">
+          <div class="finding-rec-label">→ Рекомендация</div>
+          <p>Добавить <strong>12.7. Error Handling UI</strong>: таблицу маппинга HTTP-ошибок → UI-состояний, обязательные <code>error.tsx</code> компоненты для каждой route group, <code>not-found.tsx</code>, <code>global-error.tsx</code>. Описать toast-нотификации (библиотека: sonner или react-hot-toast).</p>
+        </div>
+        <div class="tags">
+          <span class="tag">error-boundary</span>
+          <span class="tag">UX</span>
+          <span class="tag">error.tsx</span>
+          <span class="tag">503</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="group-sep"></div>
+
+    <!-- HIGH -->
+    <div id="high" class="finding-group">
+      <div class="section-header">
+        <h2>High</h2>
+        <span class="section-badge badge-high">Блокирует конкретные фичи</span>
+      </div>
+
+      <div class="finding high">
+        <div class="finding-id">FE-H01</div>
+        <div class="finding-header">
+          <div class="finding-title">Skeleton-экраны и loading states не специфицированы</div>
+          <span class="section-badge badge-high">High</span>
+        </div>
+        <div class="finding-body">
+          Каталог работает на cursor pagination с network запросами, поиск — на pgvector (latency p95 &lt;500ms). Ни слова о том, что видит пользователь во время загрузки. Без <strong>loading.tsx</strong> и скелетонов — каталог будет «прыгать» при загрузке (CLS). Это напрямую влияет на Core Web Vitals (CLS &lt;0.1 — цель из раздела 17).
+        </div>
+        <div class="finding-rec">
+          <div class="finding-rec-label">→ Рекомендация</div>
+          <p>Добавить <strong>12.8. Loading States</strong>: указать <code>loading.tsx</code> для <code>/catalog</code>, <code>/prompt/[slug]</code>, <code>/library</code>. Зафиксировать Suspense boundaries. Рекомендовать <strong>Skeleton UI</strong> (shadcn Skeleton или CSS shimmer) для карточек каталога.</p>
+        </div>
+        <div class="tags">
+          <span class="tag">loading.tsx</span>
+          <span class="tag">Suspense</span>
+          <span class="tag">CLS</span>
+          <span class="tag">skeleton</span>
+        </div>
+      </div>
+
+      <div class="finding high">
+        <div class="finding-id">FE-H02</div>
+        <div class="finding-header">
+          <div class="finding-title">Библиотека валидации форм не выбрана</div>
+          <span class="section-badge badge-high">High</span>
+        </div>
+        <div class="finding-body">
+          Формы занимают значительную часть платформы: OTP вход, создание промпта, KYC, настройки продавца, фильтры каталога, отзывы. Backend использует <strong>Pydantic схемы</strong> (Django Ninja), но frontend-валидация не описана. Дублировать схемы вручную — ошибкоёмко. Не указан: <code>react-hook-form</code>, <code>zod</code>, интеграция с Pydantic-схемами через OpenAPI codegen.
+        </div>
+        <div class="finding-rec">
+          <div class="finding-rec-label">→ Рекомендация</div>
+          <p>Зафиксировать: <strong>react-hook-form + zod</strong>. Добавить в CI шаг генерации TypeScript-типов из OpenAPI схемы Django Ninja через <code>openapi-typescript</code> — это устранит рассинхрон типов между backend и frontend на уровне CI.</p>
+        </div>
+        <div class="tags">
+          <span class="tag">react-hook-form</span>
+          <span class="tag">zod</span>
+          <span class="tag">openapi-typescript</span>
+          <span class="tag">validation</span>
+        </div>
+      </div>
+
+      <div class="finding high">
+        <div class="finding-id">FE-H03</div>
+        <div class="finding-header">
+          <div class="finding-title">KYC Onboarding UX: что видит продавец во время PENDING?</div>
+          <span class="section-badge badge-high">High</span>
+        </div>
+        <div class="finding-body">
+          Бэкенд подробно описывает жизненный цикл KYC (PENDING → VERIFIED / REJECTED / CANCELLED), но UX-сторона страницы <code>/seller/kyc</code> не определена. <strong>Как долго ждёт продавец?</strong> Есть ли индикатор прогресса? Как он узнаёт о результате (только email, или UI обновляется)? Нет описания состояний: пустой, заполненный, ожидание, ошибка, успех — для KYC-формы.
+        </div>
+        <div class="finding-rec">
+          <div class="finding-rec-label">→ Рекомендация</div>
+          <p>Добавить <strong>12.9. KYC Onboarding States</strong> — state machine с 5 UI-состояниями: <em>idle → submitted (spinner) → PENDING (polling каждые 10 сек) → VERIFIED (success, redirect to dashboard) → REJECTED (error с причиной + retry)</em>.</p>
+        </div>
+        <div class="tags">
+          <span class="tag">KYC UX</span>
+          <span class="tag">state machine</span>
+          <span class="tag">polling</span>
+          <span class="tag">onboarding</span>
+        </div>
+      </div>
+
+      <div class="finding high">
+        <div class="finding-id">FE-H04</div>
+        <div class="finding-header">
+          <div class="finding-title">Отображение расшифрованного контента промпта не специфицировано</div>
+          <span class="section-badge badge-high">High</span>
+        </div>
+        <div class="finding-body">
+          Это ключевой экран продукта — страница, куда попадает покупатель после оплаты. API возвращает <code>{ "content": "string", "instruction": "string", "variables": [...] }</code>. Но UX не описан: как отображать переменные (поле <code>variables</code> — JSONField)? Есть ли <strong>кнопка «Скопировать»</strong>? Как выглядит блок с инструкцией? Отображать ли форму подстановки переменных (<code>TOPIC=...</code>)?
+        </div>
+        <div class="finding-rec">
+          <div class="finding-rec-label">→ Рекомендация</div>
+          <p>Добавить <strong>12.10. Prompt Content View</strong>: структура страницы — <em>instruction block + variables substitution form (если variables.length &gt; 0) + content block (pre-formatted, copy button) + examples gallery</em>. Копирование — через Clipboard API с toast-уведомлением.</p>
+        </div>
+        <div class="tags">
+          <span class="tag">content-view</span>
+          <span class="tag">variables</span>
+          <span class="tag">clipboard</span>
+          <span class="tag">UX</span>
+        </div>
+      </div>
+
+      <div class="finding high">
+        <div class="finding-id">FE-H05</div>
+        <div class="finding-header">
+          <div class="finding-title">Payment UX: redirect в Robokassa и страница результата</div>
+          <span class="section-badge badge-high">High</span>
+        </div>
+        <div class="finding-body">
+          Раздел 11.3 упоминает <code>SuccessURL=/payment/result?purchase_id={uuid}&status=success|fail</code>, но страница <code>/payment/result</code> не упомянута в роутинге раздела 12.1. Что видит покупатель после возврата из Robokassa? Как обрабатывается <strong>статус fail</strong> (неоплата, отмена)? Нет описания промежуточного экрана «ожидания подтверждения» (webhook может прийти с задержкой).
+        </div>
+        <div class="finding-rec">
+          <div class="finding-rec-label">→ Рекомендация</div>
+          <p>Добавить <code>/payment/result/page.tsx</code> в роутинг. Описать логику: при <code>status=success</code> — polling <code>GET /payments/purchases/{id}/</code> до статуса SUCCESS (max 30 сек) → redirect в <code>/library</code>. При <code>status=fail</code> — страница с объяснением + кнопка «Повторить».</p>
+        </div>
+        <div class="tags">
+          <span class="tag">payment</span>
+          <span class="tag">robokassa</span>
+          <span class="tag">routing</span>
+          <span class="tag">polling</span>
+        </div>
+      </div>
+
+      <div class="finding high">
+        <div class="finding-id">FE-H06</div>
+        <div class="finding-header">
+          <div class="finding-title">UX загрузки файлов (presigned URL flow) не описан</div>
+          <span class="section-badge badge-high">High</span>
+        </div>
+        <div class="finding-body">
+          Backend описывает двухшаговый upload: <code>POST .../upload-url/</code> → presigned PUT → <code>POST .../confirm/</code>. Это нестандартный флоу. Фронтенд-разработчик должен понять: <strong>drag & drop или file input?</strong> Как показывать прогресс (XHR progress event на presigned PUT)? Что происходит при ошибке на шаге confirm (422)? Как показывать превью до и после загрузки?
+        </div>
+        <div class="finding-rec">
+          <div class="finding-rec-label">→ Рекомендация</div>
+          <p>Добавить <strong>12.11. File Upload UX</strong>: описать компонент <em>DropZone → Upload Progress → Confirm call → Preview</em>. Рекомендовать <code>react-dropzone</code> или shadcn FileUpload. Показать последовательность API-вызовов с состояниями UI.</p>
+        </div>
+        <div class="tags">
+          <span class="tag">file-upload</span>
+          <span class="tag">presigned-url</span>
+          <span class="tag">drag-drop</span>
+          <span class="tag">progress</span>
+        </div>
+      </div>
+
+      <div class="finding high">
+        <div class="finding-id">FE-H07</div>
+        <div class="finding-header">
+          <div class="finding-title">Аналитика продавца: библиотека для графиков не выбрана</div>
+          <span class="section-badge badge-high">High</span>
+        </div>
+        <div class="finding-body">
+          Раздел 4.2 упоминает «дашборд аналитики: просмотры, продажи, конверсия», раздел 20.3 — бизнес-метрики. API endpoint <code>GET /seller/analytics/</code> возвращает числа, но <strong>нет ни одного слова о визуализации</strong>: линейный или столбчатый график? date range picker? какая библиотека (Recharts, Tremor, Chart.js, Nivo)? Решение влияет на bundle size (Recharts ~300KB, Nivo ~600KB).
+        </div>
+        <div class="finding-rec">
+          <div class="finding-rec-label">→ Рекомендация</div>
+          <p>Зафиксировать <strong>Recharts</strong> (самая лёгкая, хорошо работает с SSR). Описать набор виджетов: <em>Revenue Line Chart (7/30/90 дней) + Sales Bar Chart + KPIs row (GMV, conversion, avg price)</em>. Date range picker — <code>react-day-picker</code> (уже есть в shadcn/ui).</p>
+        </div>
+        <div class="tags">
+          <span class="tag">recharts</span>
+          <span class="tag">analytics</span>
+          <span class="tag">charts</span>
+          <span class="tag">bundle-size</span>
+        </div>
+      </div>
+
+      <div class="finding high">
+        <div class="finding-id">FE-H08</div>
+        <div class="finding-header">
+          <div class="finding-title">Frontend CI: линтинг и тестирование не описаны</div>
+          <span class="section-badge badge-high">High</span>
+        </div>
+        <div class="finding-body">
+          Раздел 18 (CI) описывает backend-проверки (pytest, Bandit, ruff, mypy), но для фронтенда — ноль. Не зафиксировано: <strong>ESLint конфигурация</strong> (next/core-web-vitals? airbnb?), TypeScript strict mode (<code>"strict": true</code>), unit-тесты (<code>vitest</code> или <code>jest</code>?), проверка размера бандла (<code>@next/bundle-analyzer</code>), <code>prettier</code>.
+        </div>
+        <div class="finding-rec">
+          <div class="finding-rec-label">→ Рекомендация</div>
+          <p>Добавить в CI шаги: <code>eslint --max-warnings 0</code>, <code>tsc --noEmit</code> (TypeScript strict), <code>vitest run</code>, <code>next build</code> (проверка bundle). Зафиксировать целевой бюджет: <strong>JS bundle &lt;300KB gzip</strong> для initial page load.</p>
+        </div>
+        <div class="tags">
+          <span class="tag">eslint</span>
+          <span class="tag">typescript-strict</span>
+          <span class="tag">vitest</span>
+          <span class="tag">bundle-budget</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="group-sep"></div>
+
+    <!-- MEDIUM -->
+    <div id="med" class="finding-group">
+      <div class="section-header">
+        <h2>Medium</h2>
+        <span class="section-badge badge-med">Ухудшает качество продукта</span>
+      </div>
+
+      <div class="finding med">
+        <div class="finding-id">FE-M01</div>
+        <div class="finding-header">
+          <div class="finding-title">Accessibility: нет WCAG целей и требований</div>
+          <span class="section-badge badge-med">Medium</span>
+        </div>
+        <div class="finding-body">
+          Ни в разделе 12, ни в разделе 17 (SEO) нет упоминания о доступности. Для маркетплейса это риск: без явных требований разработчики не добавят aria-labels, keyboard navigation, focus management. Маркетплейс с финансовыми транзакциями должен поддерживать WCAG 2.1 AA минимум.
+        </div>
+        <div class="finding-rec">
+          <div class="finding-rec-label">→ Рекомендация</div>
+          <p>Добавить <strong>12.12. Accessibility</strong>: цель <strong>WCAG 2.1 AA</strong>, обязательные атрибуты для карточек каталога (<code>role="article"</code>, <code>aria-label</code>), кнопок покупки (<code>aria-busy</code>), модальных окон (<code>aria-modal</code>). Добавить <code>axe-core</code> в CI для автопроверки.</p>
+        </div>
+        <div class="tags"><span class="tag">WCAG 2.1 AA</span><span class="tag">aria</span><span class="tag">a11y</span></div>
+      </div>
+
+      <div class="finding med">
+        <div class="finding-id">FE-M02</div>
+        <div class="finding-header">
+          <div class="finding-title">Cookie consent UI не специфицирован</div>
+          <span class="section-badge badge-med">Medium</span>
+        </div>
+        <div class="finding-body">
+          Раздел 2.2 требует: «Cookie-баннер: Яндекс.Метрика инициализируется только после клика Согласен». Это UI-компонент с persistence (localStorage), но его реализация нигде не описана. Использовать готовую библиотеку (<code>react-cookie-consent</code>) или кастомный баннер? Как хранить согласие (localStorage key, срок)? Как интегрировать с <code>NEXT_PUBLIC_YM_COUNTER_ID</code>?
+        </div>
+        <div class="finding-rec">
+          <div class="finding-rec-label">→ Рекомендация</div>
+          <p>Описать компонент <code>CookieConsent</code>: хранение в <code>localStorage['cookie_consent']</code> со значением <code>accepted|rejected|null</code>. Яндекс.Метрика подключается через <code>next/script strategy="afterInteractive"</code> только при <code>accepted</code>.</p>
+        </div>
+        <div class="tags"><span class="tag">152-ФЗ</span><span class="tag">cookie</span><span class="tag">ya.metrika</span></div>
+      </div>
+
+      <div class="finding med">
+        <div class="finding-id">FE-M03</div>
+        <div class="finding-header">
+          <div class="finding-title">ISR стратегия каталога не определена</div>
+          <span class="section-badge badge-med">Medium</span>
+        </div>
+        <div class="finding-body">
+          Раздел 17 упоминает ISR для sitemap (<code>revalidate 3600</code>), но для страниц каталога и карточек промптов стратегия кеширования не описана. При SSR без кеша каждый запрос бьёт по Django + PostgreSQL — при 1000 RPS (нагрузочный тест из 15.5) это проблема. Не определено: <code>revalidatePath</code> при публикации нового промпта? ISR для <code>/prompt/[slug]</code>?
+        </div>
+        <div class="finding-rec">
+          <div class="finding-rec-label">→ Рекомендация</div>
+          <p>Добавить таблицу кеш-стратегий: <code>/catalog</code> — ISR <code>revalidate=60</code>; <code>/prompt/[slug]</code> — ISR <code>revalidate=300</code> + <code>revalidatePath</code> при смене статуса промпта; <code>/seller/[username]</code> — ISR <code>revalidate=600</code>.</p>
+        </div>
+        <div class="tags"><span class="tag">ISR</span><span class="tag">revalidate</span><span class="tag">next.js cache</span></div>
+      </div>
+
+      <div class="finding med">
+        <div class="finding-id">FE-M04</div>
+        <div class="finding-header">
+          <div class="finding-title">next.config.ts: security headers и image domains не определены</div>
+          <span class="section-badge badge-med">Medium</span>
+        </div>
+        <div class="finding-body">
+          <code>next/image</code> требует явного whitelist доменов для оптимизации. Не указан домен YOS (<code>storage.yandexcloud.net</code>) и CDN. Раздел 8.2 упоминает CSP, но конкретный <code>Content-Security-Policy</code> заголовок для Next.js не описан. Также не упомянуто: <code>output: 'standalone'</code> (нужен для Docker).
+        </div>
+        <div class="finding-rec">
+          <div class="finding-rec-label">→ Рекомендация</div>
+          <p>Добавить раздел <strong>12.13. next.config.ts</strong> с: <code>images.remotePatterns</code> для YOS + CDN, <code>headers()</code> с CSP/HSTS/X-Frame-Options, <code>output: 'standalone'</code> для Docker, <code>experimental.typedRoutes: true</code>.</p>
+        </div>
+        <div class="tags"><span class="tag">next.config</span><span class="tag">CSP</span><span class="tag">docker</span><span class="tag">security</span></div>
+      </div>
+
+      <div class="finding med">
+        <div class="finding-id">FE-M05</div>
+        <div class="finding-header">
+          <div class="finding-title">OG Image: стратегия генерации не описана</div>
+          <span class="section-badge badge-med">Medium</span>
+        </div>
+        <div class="finding-body">
+          Раздел 17 упоминает <code>og:image</code> на карточках промпта («первый пример результата или дефолтная обложка»). Но не описано: что такое «дефолтная обложка» визуально? Как генерировать динамические OG-images для промптов без пользовательских примеров? Next.js 13+ поддерживает <code>ImageResponse</code> (Edge Runtime) для генерации OG-images из JSX.
+        </div>
+        <div class="finding-rec">
+          <div class="finding-rec-label">→ Рекомендация</div>
+          <p>Описать <code>opengraph-image.tsx</code> через Next.js ImageResponse: брендовый шаблон с названием промпта, категорией, ценой и лого. Для промптов с примерами — использовать первый <code>PromptOutputExample</code> через CDN URL.</p>
+        </div>
+        <div class="tags"><span class="tag">og:image</span><span class="tag">ImageResponse</span><span class="tag">SEO</span><span class="tag">edge</span></div>
+      </div>
+
+      <div class="finding med">
+        <div class="finding-id">FE-M06</div>
+        <div class="finding-header">
+          <div class="finding-title">Яндекс.Метрика: план аналитических событий отсутствует</div>
+          <span class="section-badge badge-med">Medium</span>
+        </div>
+        <div class="finding-body">
+          Яндекс.Метрика упомянута как инструмент аналитики, но нет никакого плана событий (event tracking). Без этого нельзя измерять конверсию. Ключевые события для маркетплейса: <em>prompt_view, add_to_favorites, payment_started, payment_success, kyc_submitted, search_query, filter_applied</em> — ни одно не описано в документе.
+        </div>
+        <div class="finding-rec">
+          <div class="finding-rec-label">→ Рекомендация</div>
+          <p>Добавить <strong>17.x. Analytics Events</strong>: таблицу событий с <code>ym(COUNTER_ID, 'reachGoal', 'goal_name', params)</code>. Критичные цели: <code>payment_success</code>, <code>free_prompt_acquired</code>, <code>seller_kyc_submitted</code>, <code>semantic_search_used</code>.</p>
+        </div>
+        <div class="tags"><span class="tag">ya.metrika</span><span class="tag">goals</span><span class="tag">analytics</span><span class="tag">conversion</span></div>
+      </div>
+
+      <div class="finding med">
+        <div class="finding-id">FE-M07</div>
+        <div class="finding-header">
+          <div class="finding-title">Состояния Zustand stores: только auth store упомянут</div>
+          <span class="section-badge badge-med">Medium</span>
+        </div>
+        <div class="finding-body">
+          В разделе 12.2 упоминается «глобальный auth store» в Zustand. Но для платформы с каталогом, фильтрами, уведомлениями и покупками нужны и другие stores. Не описана архитектура состояния: <strong>notifications store</strong> (badge counter, список), <strong>catalog filters store</strong> (URL sync?), <strong>cart/payment state</strong>. Без этого разработчики будут изобретать структуры самостоятельно.
+        </div>
+        <div class="finding-rec">
+          <div class="finding-rec-label">→ Рекомендация</div>
+          <p>Добавить <strong>12.14. State Management</strong>: перечислить stores — <code>authStore</code>, <code>notificationsStore</code> (unread count + items), <code>catalogFiltersStore</code> (синхронизация с URL через <code>nuqs</code>). Всё остальное — React Server Components или React Query.</p>
+        </div>
+        <div class="tags"><span class="tag">zustand</span><span class="tag">state</span><span class="tag">nuqs</span><span class="tag">react-query</span></div>
+      </div>
+    </div>
+
+    <div class="group-sep"></div>
+
+    <!-- LOW -->
+    <div id="low" class="finding-group">
+      <div class="section-header">
+        <h2>Low</h2>
+        <span class="section-badge badge-low">Влияет на DX и поддерживаемость</span>
+      </div>
+
+      <div class="finding low">
+        <div class="finding-id">FE-L01</div>
+        <div class="finding-header">
+          <div class="finding-title">Moderator UI: формат очереди не специфицирован</div>
+          <span class="section-badge badge-low">Low</span>
+        </div>
+        <div class="finding-body">
+          Раздел 4.3 говорит, что модератор видит «только метаданные и short_description». Endpoint <code>GET /moderation/queue/</code> возвращает cursor-pagination. Но страница <code>/moderation/page.tsx</code> не описана: таблица или карточки? Есть ли batch approve/reject? Фильтр по типу (<code>PENDING_MODERATION</code> vs <code>PENDING_PLAGIARISM_REVIEW</code>)?
+        </div>
+        <div class="finding-rec">
+          <div class="finding-rec-label">→ Рекомендация</div>
+          <p>Описать layout модератора: <em>split-view — список слева (таблица с фильтром по типу), детали справа</em>. Keyboard shortcuts (<code>A</code> — approve, <code>R</code> — reject) для скорости работы. Batch operations — только при наличии ресурсов, вне MVP.</p>
+        </div>
+        <div class="tags"><span class="tag">moderation</span><span class="tag">UX</span><span class="tag">keyboard</span></div>
+      </div>
+
+      <div class="finding low">
+        <div class="finding-id">FE-L02</div>
+        <div class="finding-header">
+          <div class="finding-title">Тёмная тема: выбор не зафиксирован</div>
+          <span class="section-badge badge-low">Low</span>
+        </div>
+        <div class="finding-body">
+          Нет указаний на поддержку тёмной темы. Пользовательская аудитория маркетплейса AI-промптов ожидает тёмный режим как стандарт (2026). Не зафиксировано: поддерживать ли <code>prefers-color-scheme</code>, хранить ли выбор в localStorage, использовать ли <code>next-themes</code>.
+        </div>
+        <div class="finding-rec">
+          <div class="finding-rec-label">→ Рекомендация</div>
+          <p>Добавить в <strong>12.6. Design System</strong>: обязательная поддержка тёмной темы через <code>next-themes</code> + CSS variables. По умолчанию — тёмная (целевая аудитория tech-пользователи). Переключатель в хедере.</p>
+        </div>
+        <div class="tags"><span class="tag">dark-mode</span><span class="tag">next-themes</span><span class="tag">UX</span></div>
+      </div>
+
+      <div class="finding low">
+        <div class="finding-id">FE-L03</div>
+        <div class="finding-header">
+          <div class="finding-title">Мобильная навигация не описана</div>
+          <span class="section-badge badge-low">Low</span>
+        </div>
+        <div class="finding-body">
+          Раздел 17 говорит «Mobile-First», но нет описания мобильного навигационного паттерна. Для платформы с ролевыми кабинетами это нетривиально: hamburger menu + drawer? Bottom navigation bar? Как переключаться между ролями (buyer / seller) на мобильном?
+        </div>
+        <div class="finding-rec">
+          <div class="finding-rec-label">→ Рекомендация</div>
+          <p>Описать мобильную навигацию: <em>hamburger → Drawer (shadcn Sheet)</em> для основной навигации. Bottom tab bar для кабинета (библиотека, избранное, профиль). Брейкпоинты: mobile &lt;768px, tablet &lt;1024px, desktop ≥1024px.</p>
+        </div>
+        <div class="tags"><span class="tag">mobile</span><span class="tag">navigation</span><span class="tag">responsive</span></div>
+      </div>
+
+    </div>
+
+    <!-- SUMMARY TABLE -->
+    <div class="group-sep"></div>
+    <div class="finding-group">
+      <div class="section-header">
+        <h2>Итог по приоритетам</h2>
+        <span class="section-badge badge-info">Roadmap для Sprint 1</span>
+      </div>
+      <div class="finding" style="border-left: none; padding: 28px 28px;">
+        <table style="width:100%; border-collapse:collapse; font-size:13px;">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border)">
+              <th style="text-align:left; padding:8px 12px; color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:500; letter-spacing:.05em">ID</th>
+              <th style="text-align:left; padding:8px 12px; color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:500; letter-spacing:.05em">Находка</th>
+              <th style="text-align:left; padding:8px 12px; color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:500; letter-spacing:.05em">Severity</th>
+              <th style="text-align:left; padding:8px 12px; color:var(--muted); font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:500; letter-spacing:.05em">Раздел →</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted)">FE-C01</td><td style="padding:8px 12px">Дизайн-система и UI-библиотека</td><td style="padding:8px 12px"><span class="section-badge badge-crit">Critical</span></td><td style="padding:8px 12px; color:var(--muted); font-size:12px">→ 12.6</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted)">FE-C02</td><td style="padding:8px 12px">Real-time уведомления в браузере</td><td style="padding:8px 12px"><span class="section-badge badge-crit">Critical</span></td><td style="padding:8px 12px; color:var(--muted); font-size:12px">→ 23.7</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted)">FE-C03</td><td style="padding:8px 12px">NEXT_PUBLIC_* переменные окружения</td><td style="padding:8px 12px"><span class="section-badge badge-crit">Critical</span></td><td style="padding:8px 12px; color:var(--muted); font-size:12px">→ 19.2</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted)">FE-C04</td><td style="padding:8px 12px">Error Boundaries и fallback UI</td><td style="padding:8px 12px"><span class="section-badge badge-crit">Critical</span></td><td style="padding:8px 12px; color:var(--muted); font-size:12px">→ 12.7</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted)">FE-H01</td><td style="padding:8px 12px">Skeleton / Loading states</td><td style="padding:8px 12px"><span class="section-badge badge-high">High</span></td><td style="padding:8px 12px; color:var(--muted); font-size:12px">→ 12.8</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted)">FE-H02</td><td style="padding:8px 12px">react-hook-form + zod + OpenAPI типы</td><td style="padding:8px 12px"><span class="section-badge badge-high">High</span></td><td style="padding:8px 12px; color:var(--muted); font-size:12px">→ 12.x</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted)">FE-H03</td><td style="padding:8px 12px">KYC onboarding state machine</td><td style="padding:8px 12px"><span class="section-badge badge-high">High</span></td><td style="padding:8px 12px; color:var(--muted); font-size:12px">→ 12.9</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted)">FE-H04</td><td style="padding:8px 12px">Prompt Content View UX</td><td style="padding:8px 12px"><span class="section-badge badge-high">High</span></td><td style="padding:8px 12px; color:var(--muted); font-size:12px">→ 12.10</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted)">FE-H05</td><td style="padding:8px 12px">Payment redirect + result page</td><td style="padding:8px 12px"><span class="section-badge badge-high">High</span></td><td style="padding:8px 12px; color:var(--muted); font-size:12px">→ 12.1 + 11.3</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted)">FE-H06</td><td style="padding:8px 12px">File Upload UX (presigned flow)</td><td style="padding:8px 12px"><span class="section-badge badge-high">High</span></td><td style="padding:8px 12px; color:var(--muted); font-size:12px">→ 12.11</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted)">FE-H07</td><td style="padding:8px 12px">Charts библиотека (Recharts)</td><td style="padding:8px 12px"><span class="section-badge badge-high">High</span></td><td style="padding:8px 12px; color:var(--muted); font-size:12px">→ 12.x</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted)">FE-H08</td><td style="padding:8px 12px">Frontend CI (ESLint, tsc, vitest)</td><td style="padding:8px 12px"><span class="section-badge badge-high">High</span></td><td style="padding:8px 12px; color:var(--muted); font-size:12px">→ 18</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted)">FE-M01</td><td style="padding:8px 12px">WCAG 2.1 AA + axe-core</td><td style="padding:8px 12px"><span class="section-badge badge-med">Medium</span></td><td style="padding:8px 12px; color:var(--muted); font-size:12px">→ 12.12</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted)">FE-M02</td><td style="padding:8px 12px">Cookie consent компонент</td><td style="padding:8px 12px"><span class="section-badge badge-med">Medium</span></td><td style="padding:8px 12px; color:var(--muted); font-size:12px">→ 2.2</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted)">FE-M03</td><td style="padding:8px 12px">ISR стратегия по страницам</td><td style="padding:8px 12px"><span class="section-badge badge-med">Medium</span></td><td style="padding:8px 12px; color:var(--muted); font-size:12px">→ 12.x</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted)">FE-M04</td><td style="padding:8px 12px">next.config.ts headers + domains</td><td style="padding:8px 12px"><span class="section-badge badge-med">Medium</span></td><td style="padding:8px 12px; color:var(--muted); font-size:12px">→ 12.13</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted)">FE-M05</td><td style="padding:8px 12px">OG Image генерация (ImageResponse)</td><td style="padding:8px 12px"><span class="section-badge badge-med">Medium</span></td><td style="padding:8px 12px; color:var(--muted); font-size:12px">→ 17</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted)">FE-M06</td><td style="padding:8px 12px">Яндекс.Метрика event plan</td><td style="padding:8px 12px"><span class="section-badge badge-med">Medium</span></td><td style="padding:8px 12px; color:var(--muted); font-size:12px">→ 17</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted)">FE-M07</td><td style="padding:8px 12px">Zustand stores архитектура</td><td style="padding:8px 12px"><span class="section-badge badge-med">Medium</span></td><td style="padding:8px 12px; color:var(--muted); font-size:12px">→ 12.14</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted)">FE-L01</td><td style="padding:8px 12px">Moderator Queue UI layout</td><td style="padding:8px 12px"><span class="section-badge badge-low">Low</span></td><td style="padding:8px 12px; color:var(--muted); font-size:12px">→ 12.x</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 12px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted)">FE-L02</td><td style="padding:8px 12px">Dark mode (next-themes)</td><td style="padding:8px 12px"><span class="section-badge badge-low">Low</span></td><td style="padding:8px 12px; color:var(--muted); font-size:12px">→ 12.6</td></tr>
+            <tr><td style="padding:8px 12px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted)">FE-L03</td><td style="padding:8px 12px">Mobile navigation pattern</td><td style="padding:8px 12px"><span class="section-badge badge-low">Low</span></td><td style="padding:8px 12px; color:var(--muted); font-size:12px">→ 12.x</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <p>PromptSpace Frontend Audit · v2.0 spec · 2026-02-27</p>
+  <p>22 findings · 4 Critical · 8 High · 7 Medium · 3 Low</p>
+</footer>
+
+</body>
+</html>

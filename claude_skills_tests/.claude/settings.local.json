@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node:*)",
+      "Bash(npx:*)",
+      "Bash(npm show:*)",
+      "Bash(npm run:*)",
+      "Bash(bash scripts/*)",
+      "Bash(docker compose ps:*)",
+      "Bash(nc -z localhost:*)",
+      "Bash(claude mcp *)",
+      "Bash(git:*)",
+      "Bash(docker compose:*)",
+      "Bash(curl:*)",
+      "Bash(ls:*)",
+      "Bash(python3:*)",
+      "Bash(/c/dev/claude_skills_tests/backend/tests/test_health.py:*)",
+      "Bash(/c/dev/claude_skills_tests/backend/config/settings/test.py:*)",
+      "Bash(docker ps:*)",
+      "Bash(docker exec:*)"
+    ]
+  }
+}

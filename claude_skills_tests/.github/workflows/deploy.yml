@@ -1,0 +1,135 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+# Запускаем только после успешного CI
+# CI workflow (ci.yml) должен пройти до деплоя
+
+jobs:
+  # ── Staging (auto-deploy при push в main) ──────────────────────────────────
+  deploy-staging:
+    name: Deploy → Staging
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.promptspace.ru
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.REGISTRY_URL }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Build & push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ secrets.REGISTRY_URL }}/promptspace-backend:staging-${{ github.sha }}
+          cache-from: type=registry,ref=${{ secrets.REGISTRY_URL }}/promptspace-backend:staging-cache
+          cache-to: type=registry,ref=${{ secrets.REGISTRY_URL }}/promptspace-backend:staging-cache,mode=max
+
+      - name: Build & push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ secrets.REGISTRY_URL }}/promptspace-frontend:staging-${{ github.sha }}
+          cache-from: type=registry,ref=${{ secrets.REGISTRY_URL }}/promptspace-frontend:staging-cache
+          cache-to: type=registry,ref=${{ secrets.REGISTRY_URL }}/promptspace-frontend:staging-cache,mode=max
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ secrets.STAGING_API_URL }}
+            NEXT_PUBLIC_SITE_URL=${{ secrets.STAGING_SITE_URL }}
+
+      - name: Deploy to staging via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            cd /opt/promptspace
+            export IMAGE_TAG=staging-${{ github.sha }}
+            export REGISTRY=${{ secrets.REGISTRY_URL }}
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker compose exec -T web python manage.py migrate --database=direct
+            docker image prune -f
+
+      - name: Verify staging health
+        run: |
+          sleep 15
+          curl --fail --retry 5 --retry-delay 5 \
+            https://staging.promptspace.ru/api/v1/health/ || exit 1
+
+  # ── Production (manual approve required) ──────────────────────────────────
+  deploy-production:
+    name: Deploy → Production
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    environment:
+      name: production
+      url: https://promptspace.ru
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.REGISTRY_URL }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Promote staging image to production (backend)
+        run: |
+          docker buildx imagetools create \
+            --tag ${{ secrets.REGISTRY_URL }}/promptspace-backend:prod-${{ github.sha }} \
+            ${{ secrets.REGISTRY_URL }}/promptspace-backend:staging-${{ github.sha }}
+
+      - name: Promote staging image to production (frontend)
+        run: |
+          docker buildx imagetools create \
+            --tag ${{ secrets.REGISTRY_URL }}/promptspace-frontend:prod-${{ github.sha }} \
+            ${{ secrets.REGISTRY_URL }}/promptspace-frontend:staging-${{ github.sha }}
+
+      - name: Deploy to production via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            cd /opt/promptspace
+            export IMAGE_TAG=prod-${{ github.sha }}
+            export REGISTRY=${{ secrets.REGISTRY_URL }}
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker compose exec -T web python manage.py migrate --database=direct
+            docker image prune -f
+
+      - name: Verify production health
+        run: |
+          sleep 15
+          curl --fail --retry 5 --retry-delay 5 \
+            https://promptspace.ru/api/v1/health/ || exit 1
+
+      - name: Notify deployment
+        if: always()
+        run: |
+          echo "Deployment to production: ${{ job.status }}"
+          echo "SHA: ${{ github.sha }}"
+          echo "Actor: ${{ github.actor }}"

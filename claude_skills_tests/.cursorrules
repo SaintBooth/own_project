@@ -1,0 +1,324 @@
+# PromptSpace — Cursor Rules
+# Версия: 1.0 | Дата: 2026-02-28
+# Источник: promptspace-release.md v2.3
+
+## Проект
+
+**PromptSpace** — маркетплейс AI-промптов для российского рынка.
+Монорепозиторий: `backend/` (Django) + `frontend/` (Next.js).
+
+---
+
+## Технологический стек
+
+### Backend
+- Python 3.12+
+- Django 5.x + Django Ninja (не DRF)
+- PostgreSQL 16 + pgvector
+- PgBouncer (`pool_mode=transaction`)
+- Redis 7 (Sentinel в Production)
+- Celery 5 + django-celery-beat
+- HashiCorp Vault (KMS, KEK — единственный источник ключей)
+- Yandex Object Storage (S3-compatible)
+
+### Frontend
+- Next.js 15 App Router (TypeScript strict)
+- React 19, Server Components + Client Components
+- Tailwind CSS v4 + shadcn/ui
+- TanStack Query + Zustand + nuqs
+- Framer Motion
+- Vitest + Playwright
+
+### Compliance
+- 152-ФЗ: данные только в РФ
+- Embedding-провайдер: только YandexGPT Embeddings v3 или GigaChat Embeddings
+- **OpenAI и любые зарубежные провайдеры эмбеддингов — ЗАПРЕЩЕНЫ**
+
+---
+
+## Python / Django правила
+
+### Общие
+
+- Все файлы Python — `UTF-8`, `\n` line endings
+- Линтер: `ruff` (конфиг в `pyproject.toml`), форматтер: `ruff format`
+- Типизация: `mypy --strict`. Все публичные функции имеют аннотации типов
+- Статический анализ безопасности: `Bandit`
+- Зависимости: `pip-audit` на каждый PR
+
+### BinaryField — ОБЯЗАТЕЛЬНОЕ ПРАВИЛО
+
+Django `BinaryField` при чтении возвращает `memoryview`, не `bytes`.
+**ВСЕГДА** оборачивать в `bytes()` перед передачей в криптографические функции:
+
+```python
+# НЕПРАВИЛЬНО — TypeError в runtime
+cipher.decrypt(prompt.encrypted_content)
+
+# ПРАВИЛЬНО
+cipher.decrypt(bytes(prompt.encrypted_content))
+iv = bytes(prompt.iv)
+auth_tag = bytes(prompt.auth_tag)
+dek = bytes(prompt.encrypted_dek)
+```
+
+### Счётчики — только через F()
+
+```python
+# НЕПРАВИЛЬНО — race condition
+prompt.purchases_count += 1
+prompt.save()
+
+# ПРАВИЛЬНО
+from django.db.models import F
+Prompt.objects.filter(pk=prompt.pk).update(purchases_count=F("purchases_count") + 1)
+```
+
+Правило распространяется на: `purchases_count`, `views_count`, `rating_count`, `rating_avg`, `favorites_count`.
+
+### Транзакционные границы
+
+Операции, затрагивающие ≥2 моделей, оборачивать в `@transaction.atomic`:
+
+```python
+from django.db import transaction
+
+@transaction.atomic
+def process_purchase_success(purchase_id: UUID) -> None:
+    purchase = Purchase.objects.select_for_update().get(pk=purchase_id)
+    if purchase.status != PurchaseStatus.PENDING:
+        return  # идемпотентность — всегда проверять статус
+    ...
+```
+
+### Идемпотентность — ОБЯЗАТЕЛЬНО для webhook и API
+
+Перед любым изменением состояния проверять текущий статус:
+```python
+# Для Celery задач
+purchase = Purchase.objects.select_for_update().get(pk=purchase_id)
+if purchase.status != PurchaseStatus.PENDING:
+    return  # no-op, не raise
+```
+
+### Django Ninja
+
+- Использовать `Auth` классы, не декораторы `@permission_required`
+- Пример авторизации с проверкой PromptAccess — см. раздел §25.3 спецификации
+- `/docs` (OpenAPI) отключён в production: `DJANGO_NINJA_DOCS_URL=""` в env
+- Проверка seller: `SellerProfile.objects.filter(user=user, kyc_status="VERIFIED").exists()`
+
+### N+1 запросы
+
+- Всегда использовать `select_related` / `prefetch_related` в list-endpoints
+- Запрещено N+1 в Celery задачах на батчинг
+- Пример: `Prompt.objects.select_related("seller__user", "category").prefetch_related("tags")`
+
+### Порядок операций при публикации промпта
+
+Атомарно в одной транзакции (§25.9):
+1. `prompt.published_at = now()`
+2. `prompt.content_hash = sha256(plaintext_content)`
+3. `prompt.status = PromptStatus.PUBLISHED`
+4. `prompt.save()`
+
+Запрещено менять `encrypted_content` после PUBLISHED.
+
+### Шифрование (Envelope Encryption)
+
+Порядок расшифровки (§25.8):
+1. Проверить `PromptAccess`
+2. Достать `encrypted_dek` из БД
+3. Vault Transit decrypt → DEK
+4. `aes_gcm_decrypt(bytes(encrypted_content), dek, bytes(iv), bytes(auth_tag))`
+
+**Никогда не логировать:** DEK, plaintext контент промпта, API ключи, OTP коды.
+
+### Celery
+
+- 5 очередей: `default`, `embeddings`, `notifications`, `payments`, `gdpr`
+- Задачи из `gdpr` (anonymize_account) — высокий приоритет, изолированная очередь
+- Carbon-Aware Scheduling: некритичные задачи (`aggregate_seller_stats`) — в low-carbon window
+
+### Миграции
+
+- Zero-downtime: новые nullable колонки, затем заполнение, затем `NOT NULL`
+- `DATABASE_DIRECT_URL` для `migrate` (bypass PgBouncer)
+- Запрещено менять миграции, уже применённые в staging/production
+
+---
+
+## Безопасность
+
+### Никогда не делать
+
+- Логировать plaintext: API ключи, OTP, DEK, refresh token, plaintext промпты
+- Хранить секреты в коде или `.env` файлах в репозитории
+- Использовать `VAULT_TOKEN` в Production (только AppRole)
+- Включать `DEBUG=True` в Production
+- Оставлять открытыми `/api/docs`, `/api/schema` в Production
+- Использовать `if request.method` вместо декларативных роутеров Django Ninja
+
+### JWT
+
+- Алгоритм: `HS256`, библиотека: `PyJWT 2.x`
+- Blacklist: `jwt:revoked:{jti}` в Redis, TTL = оставшееся время жизни
+- При недоступности Redis для blacklist check: **fail closed** (401), не fail open
+- Refresh cookie: `HttpOnly=True`, `Secure=True`, `SameSite="Lax"`, `path="/api/v1/auth/"`
+
+### Rate Limiting
+
+- Nginx `map`-блок (не `if is evil`), §ADR-009
+- Зона `api_agent` (M2M): ключ — хеш токена, **не plaintext токен**
+- `ROBOKASSA_IP_WHITELIST` — Robokassa webhook принимать только с этих IP
+
+### API Keys (M2M)
+
+- Хранить только `SHA-256(key)` в БД, поле `key_hash`
+- Индекс по `key_hash`, не по `key`
+- Показывать plaintext только при создании, один раз
+- Формат: `ps_live_<random>`
+
+### Нonce-based CSP
+
+- Запрещён `'unsafe-inline'` в `script-src`
+- Использовать nonce-based CSP (§12.13 спецификации)
+- Server-Side Tagging для Яндекс.Метрики
+
+### 152-ФЗ
+
+- `consent_pd_at` — datetime, не bool
+- Telegram: в body сообщений запрещены ПДн (email, имена, суммы, названия промптов)
+- Весь `anonymize_account` — в одной Celery задаче, 7 шагов из §2.5
+
+---
+
+## Frontend / Next.js правила
+
+### Server vs Client Components
+
+- **Server Components** (по умолчанию): каталог, карточки промптов, страница продавца, SEO страницы
+- **Client Components** (`"use client"`)**: формы, интерактивные элементы, Zustand stores, polling
+- Данные в Server Components получать через `fetch()` с `cache: "no-store"` или ISR `revalidate`
+
+### ISR стратегия
+
+```typescript
+// Каталог: 300 сек
+export const revalidate = 300
+
+// При публикации промпта — явный revalidate:
+revalidatePath('/catalog')
+revalidatePath(`/prompts/${slug}`)
+```
+
+### Zustand stores
+
+3 стора (§12.14):
+1. `useAuthStore` — пользователь, токены
+2. `useCartStore` — текущая покупка
+3. `useNotificationStore` — непрочитанные уведомления
+
+### State Management правила
+
+- Server state (API данные): TanStack Query
+- URL state (фильтры, пагинация): nuqs
+- Client UI state: Zustand
+- Запрещено хранить sensitive данные в localStorage
+
+### OG Image
+
+- Использовать Next.js `ImageResponse` для динамических OG изображений
+- Каждый промпт и профиль продавца имеет OG Image
+
+### Доступность
+
+- WCAG 2.1 AA обязательно
+- axe-core в CI — 0 violations в PR
+
+### Error Handling
+
+- 4 `error.tsx`: root, `/catalog`, `/prompts/[slug]`, `/dashboard`
+- Sonner для toast-уведомлений об ошибках
+
+---
+
+## Тестирование
+
+### Backend
+
+- Framework: `pytest` + `pytest-django`
+- Минимальное покрытие: 80% в целом, 100% на критических путях
+- Критические пути: JWT flow, OTP Lua скрипт, `process_purchase_success`, `anonymize_account`, Vault encrypt/decrypt
+- Mocking: `pytest-mock` для Vault, Robokassa, Dadata, YandexGPT
+- Factory: `factory_boy` для создания тестовых данных
+
+### Frontend
+
+- Unit: Vitest
+- E2E: Playwright, 8 обязательных сценариев (§15.3)
+- Bundle budget: CI падает при превышении
+
+### Celery
+
+- Тестировать задачи синхронно: `task.apply()`, не `task.delay()`
+- Проверять идемпотентность: вызов задачи дважды → один результат
+
+---
+
+## Структура репозитория
+
+```
+backend/
+  apps/
+    users/         # User, SellerProfile, ApiKey
+    prompts/       # Prompt, Category, Tag, Favorite, PromptAccess
+    payments/      # Purchase, SiteSettings
+    notifications/ # Notification, NotificationSettings
+    moderation/    # ModerationRecord, RejectionReason
+    core/          # AuditLog
+    analytics/     # SellerDailyStats
+  services/
+    encryption.py  # Vault + AES-256-GCM
+    payment.py     # Robokassa абстракция
+    search.py      # ISearchProvider
+    notifications.py # INotificationChannel
+  settings/
+    base.py / local.py / staging.py / production.py
+
+frontend/
+  app/
+    (public)/      # каталог, карточки (Server Components)
+    (auth)/        # auth routes
+    dashboard/     # личный кабинет
+    seller/        # seller pages
+  components/
+    ui/            # shadcn/ui компоненты
+  stores/          # Zustand stores
+  lib/             # utilities, API client
+```
+
+---
+
+## Переменные окружения
+
+- Никогда не коммитить `.env` в репозиторий
+- Все секреты — в GitHub Secrets для CI, Vault для runtime
+- `VAULT_ROLE_ID` + `VAULT_SECRET_ID` — единственный способ auth к Vault в Production
+- `TELEGRAM_ENABLED=false` по умолчанию
+- Embedding провайдер: только `YANDEX_EMBEDDINGS_API_KEY` или `GIGACHAT_API_KEY`
+
+---
+
+## Запрещено в коде
+
+1. `import openai` — нарушение 152-ФЗ
+2. `prompt.encrypted_content` без `bytes()` — TypeError в runtime
+3. `obj.counter += 1; obj.save()` — race condition
+4. `if request.method == "POST"` — использовать роутеры
+5. Хранить API ключ в plaintext в БД
+6. `DEBUG=True` в production settings
+7. `VAULT_TOKEN` в production env (только AppRole)
+8. `settings.SECRET_KEY` в логах
+9. ПДн (email, имя) в Telegram уведомлениях
+10. `time.sleep()` в синхронном Django коде — использовать Celery задачи

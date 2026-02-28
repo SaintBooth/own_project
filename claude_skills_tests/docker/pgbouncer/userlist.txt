@@ -1,0 +1,12 @@
+# PgBouncer userlist — пароли в формате SCRAM-SHA-256 или md5
+# Для dev используем md5. В production: сгенерировать через pg_shadow.
+# Формат: "username" "password"
+#
+# Пароль "postgres" в md5: md5fe4rkqep8whbe5fo5kochkfmxgc
+# (md5 + hex(md5("postgres" + "postgres")))
+#
+# Для локальной разработки — plaintext допустим при auth_type = plain
+# В production: auth_type = scram-sha-256, пароль получить через:
+#   SELECT concat('SCRAM-SHA-256$', ...) FROM pg_shadow WHERE usename='postgres';
+
+"postgres" "postgres"
