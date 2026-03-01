@@ -9,10 +9,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Зависимости Python (отдельный слой для кеширования)
+# Зависимости Python — два слоя для лучшего кеширования.
+# base.txt (production) кешируется отдельно от local.txt (dev-инструменты).
 COPY requirements/base.txt requirements/base.txt
+RUN pip install --no-cache-dir --timeout=300 -r requirements/base.txt
+
 COPY requirements/local.txt requirements/local.txt
-RUN pip install --no-cache-dir -r requirements/local.txt
+RUN pip install --no-cache-dir --timeout=300 -r requirements/local.txt
 
 # Исходный код
 COPY . .
